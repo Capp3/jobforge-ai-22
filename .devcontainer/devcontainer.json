@@ -1,0 +1,28 @@
+{
+	"name": "Jobforge AI",
+	"build": {
+	  "dockerfile": "Dockerfile"
+	},
+	"runArgs": [
+		"--cap-add=SYS_ADMIN",
+		"--security-opt=seccomp=unconfined"
+	],
+	"containerEnv": {
+		"PUPPETEER_SKIP_CHROMIUM_DOWNLOAD": "true",
+		"PUPPETEER_EXECUTABLE_PATH": "/usr/bin/google-chrome-stable",
+		"PUPPETEER_ARGS": "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-accelerated-2d-canvas --no-first-run --no-zygote --disable-gpu"
+	},
+	"settings": {
+	  "terminal.integrated.shell.linux": "/bin/bash"
+	},
+	"customizations": {
+	  "vscode": {
+		"extensions": [
+		  "redhat.java",
+		  "msjsdiag.vscode-react-native",
+		  "ecmel.vscode-html-css"
+		]
+	  }
+	}
+	// "remoteUser": "root"
+  }

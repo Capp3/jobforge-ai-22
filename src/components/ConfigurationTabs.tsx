@@ -36,7 +36,16 @@ export function ConfigurationTabs() {
       jobTitles: ["Broadcast Engineer", "Video Engineer", "Systems Engineer"],
       remotePreference: "hybrid",
       salaryRange: { min: 40000, max: 80000 },
-      currency: "GBP"
+      currency: "GBP",
+      frequency: "daily",
+      smtp: {
+        host: "",
+        port: 587,
+        secure: false,
+        username: "",
+        password: "",
+        from: ""
+      }
     },
     rssFeeds: [
       { id: 1, url: "https://rss.app/feeds/_dut10XITtqVqfwp1.xml", name: "Jobbing Feed", enabled: true },
@@ -274,6 +283,149 @@ Analyze:
                       placeholder="80000"
                     />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="mr-2 h-5 w-5" />
+                  Automation Settings
+                </CardTitle>
+                <CardDescription>
+                  Configure frequency and email settings
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="frequency">Check Frequency</Label>
+                  <Select 
+                    value={config.basics.frequency}
+                    onValueChange={(value) => setConfig(prev => ({
+                      ...prev,
+                      basics: { ...prev.basics, frequency: value }
+                    }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="hourly">Every Hour</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="twice-daily">Twice Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="md:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Settings className="mr-2 h-5 w-5" />
+                  SMTP Configuration
+                </CardTitle>
+                <CardDescription>
+                  Configure email server settings for sending job alerts
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="smtp-host">SMTP Host</Label>
+                    <Input
+                      id="smtp-host"
+                      value={config.basics.smtp.host}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        basics: {
+                          ...prev.basics,
+                          smtp: { ...prev.basics.smtp, host: e.target.value }
+                        }
+                      }))}
+                      placeholder="smtp.gmail.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="smtp-port">Port</Label>
+                    <Input
+                      id="smtp-port"
+                      type="number"
+                      value={config.basics.smtp.port}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        basics: {
+                          ...prev.basics,
+                          smtp: { ...prev.basics.smtp, port: parseInt(e.target.value) || 587 }
+                        }
+                      }))}
+                      placeholder="587"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Switch 
+                    id="smtp-tls"
+                    checked={config.basics.smtp.secure}
+                    onCheckedChange={(checked) => setConfig(prev => ({
+                      ...prev,
+                      basics: {
+                        ...prev.basics,
+                        smtp: { ...prev.basics.smtp, secure: checked }
+                      }
+                    }))}
+                  />
+                  <Label htmlFor="smtp-tls">Use TLS/SSL</Label>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="smtp-username">Username</Label>
+                    <Input
+                      id="smtp-username"
+                      value={config.basics.smtp.username}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        basics: {
+                          ...prev.basics,
+                          smtp: { ...prev.basics.smtp, username: e.target.value }
+                        }
+                      }))}
+                      placeholder="your-email@example.com"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="smtp-password">Password</Label>
+                    <Input
+                      id="smtp-password"
+                      type="password"
+                      value={config.basics.smtp.password}
+                      onChange={(e) => setConfig(prev => ({
+                        ...prev,
+                        basics: {
+                          ...prev.basics,
+                          smtp: { ...prev.basics.smtp, password: e.target.value }
+                        }
+                      }))}
+                      placeholder="App password or email password"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="smtp-from">From Email</Label>
+                  <Input
+                    id="smtp-from"
+                    value={config.basics.smtp.from}
+                    onChange={(e) => setConfig(prev => ({
+                      ...prev,
+                      basics: {
+                        ...prev.basics,
+                        smtp: { ...prev.basics.smtp, from: e.target.value }
+                      }
+                    }))}
+                    placeholder="Job Hunter <jobs@example.com>"
+                  />
                 </div>
               </CardContent>
             </Card>

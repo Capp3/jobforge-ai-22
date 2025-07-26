@@ -43,8 +43,30 @@ export function ConfigurationTabs() {
       { id: 2, url: "https://example.com/jobs/feed.xml", name: "Tech Jobs", enabled: true }
     ],
     aiAgents: {
-      ollama: { endpoint: "http://localhost:11434", model: "llama3.1:8b", enabled: true },
-      openai: { apiKey: "", model: "gpt-4", enabled: false }
+      llm1: { 
+        provider: "ollama", 
+        name: "Primary LLM",
+        enabled: true,
+        configs: {
+          ollama: { endpoint: "http://localhost:11434", model: "llama3.1:8b" },
+          openai: { apiKey: "", model: "gpt-4" },
+          anthropic: { apiKey: "", model: "claude-3-sonnet-20240229" },
+          gemini: { apiKey: "", model: "gemini-pro" },
+          grok: { apiKey: "", model: "grok-beta" }
+        }
+      },
+      llm2: { 
+        provider: "openai", 
+        name: "Secondary LLM",
+        enabled: false,
+        configs: {
+          ollama: { endpoint: "http://localhost:11434", model: "llama3.1:8b" },
+          openai: { apiKey: "", model: "gpt-4" },
+          anthropic: { apiKey: "", model: "claude-3-sonnet-20240229" },
+          gemini: { apiKey: "", model: "gemini-pro" },
+          grok: { apiKey: "", model: "grok-beta" }
+        }
+      }
     },
     cv: `# John Doe - Broadcast Engineer
 
@@ -310,82 +332,433 @@ Analyze:
         {/* AI Agents Tab */}
         <TabsContent value="ai" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
+            {/* LLM 1 Configuration */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Bot className="mr-2 h-5 w-5" />
-                  Ollama Configuration
+                  Primary LLM
                 </CardTitle>
                 <CardDescription>
-                  Local AI agent for initial job filtering
+                  Configure your first AI agent
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="ollama-enabled">Enable Ollama</Label>
-                  <Switch id="ollama-enabled" checked={config.aiAgents.ollama.enabled} />
-                </div>
-                <div>
-                  <Label htmlFor="ollama-endpoint">Endpoint URL</Label>
-                  <Input
-                    id="ollama-endpoint"
-                    value={config.aiAgents.ollama.endpoint}
-                    placeholder="http://localhost:11434"
+                  <Label htmlFor="llm1-enabled">Enable Primary LLM</Label>
+                  <Switch 
+                    id="llm1-enabled" 
+                    checked={config.aiAgents.llm1.enabled}
+                    onCheckedChange={(checked) => setConfig(prev => ({
+                      ...prev,
+                      aiAgents: {
+                        ...prev.aiAgents,
+                        llm1: { ...prev.aiAgents.llm1, enabled: checked }
+                      }
+                    }))}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="ollama-model">Model</Label>
-                  <Select value={config.aiAgents.ollama.model}>
+                  <Label htmlFor="llm1-name">Agent Name</Label>
+                  <Input
+                    id="llm1-name"
+                    value={config.aiAgents.llm1.name}
+                    onChange={(e) => setConfig(prev => ({
+                      ...prev,
+                      aiAgents: {
+                        ...prev.aiAgents,
+                        llm1: { ...prev.aiAgents.llm1, name: e.target.value }
+                      }
+                    }))}
+                    placeholder="Primary LLM"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="llm1-provider">Provider</Label>
+                  <Select 
+                    value={config.aiAgents.llm1.provider}
+                    onValueChange={(value) => setConfig(prev => ({
+                      ...prev,
+                      aiAgents: {
+                        ...prev.aiAgents,
+                        llm1: { ...prev.aiAgents.llm1, provider: value }
+                      }
+                    }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="llama3.1:8b">Llama 3.1 8B</SelectItem>
-                      <SelectItem value="llama3.1:70b">Llama 3.1 70B</SelectItem>
-                      <SelectItem value="codellama">Code Llama</SelectItem>
+                      <SelectItem value="ollama">Ollama</SelectItem>
+                      <SelectItem value="openai">OpenAI</SelectItem>
+                      <SelectItem value="anthropic">Anthropic</SelectItem>
+                      <SelectItem value="gemini">Google Gemini</SelectItem>
+                      <SelectItem value="grok">Grok</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Provider-specific configuration */}
+                {config.aiAgents.llm1.provider === "ollama" && (
+                  <>
+                    <div>
+                      <Label htmlFor="llm1-ollama-endpoint">Endpoint URL</Label>
+                      <Input
+                        id="llm1-ollama-endpoint"
+                        value={config.aiAgents.llm1.configs.ollama.endpoint}
+                        onChange={(e) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm1: {
+                              ...prev.aiAgents.llm1,
+                              configs: {
+                                ...prev.aiAgents.llm1.configs,
+                                ollama: { ...prev.aiAgents.llm1.configs.ollama, endpoint: e.target.value }
+                              }
+                            }
+                          }
+                        }))}
+                        placeholder="http://localhost:11434"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="llm1-ollama-model">Model</Label>
+                      <Select 
+                        value={config.aiAgents.llm1.configs.ollama.model}
+                        onValueChange={(value) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm1: {
+                              ...prev.aiAgents.llm1,
+                              configs: {
+                                ...prev.aiAgents.llm1.configs,
+                                ollama: { ...prev.aiAgents.llm1.configs.ollama, model: value }
+                              }
+                            }
+                          }
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="llama3.1:8b">Llama 3.1 8B</SelectItem>
+                          <SelectItem value="llama3.1:70b">Llama 3.1 70B</SelectItem>
+                          <SelectItem value="codellama">Code Llama</SelectItem>
+                          <SelectItem value="mistral">Mistral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+
+                {(config.aiAgents.llm1.provider === "openai" || 
+                  config.aiAgents.llm1.provider === "anthropic" || 
+                  config.aiAgents.llm1.provider === "gemini" || 
+                  config.aiAgents.llm1.provider === "grok") && (
+                  <>
+                    <div>
+                      <Label htmlFor="llm1-api-key">API Key</Label>
+                      <Input
+                        id="llm1-api-key"
+                        type="password"
+                        value={config.aiAgents.llm1.configs[config.aiAgents.llm1.provider].apiKey}
+                        onChange={(e) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm1: {
+                              ...prev.aiAgents.llm1,
+                              configs: {
+                                ...prev.aiAgents.llm1.configs,
+                                [config.aiAgents.llm1.provider]: { 
+                                  ...prev.aiAgents.llm1.configs[config.aiAgents.llm1.provider], 
+                                  apiKey: e.target.value 
+                                }
+                              }
+                            }
+                          }
+                        }))}
+                        placeholder={
+                          config.aiAgents.llm1.provider === "openai" ? "sk-..." :
+                          config.aiAgents.llm1.provider === "anthropic" ? "sk-ant-..." :
+                          config.aiAgents.llm1.provider === "gemini" ? "AI..." :
+                          "xai-..."
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="llm1-model">Model</Label>
+                      <Select 
+                        value={config.aiAgents.llm1.configs[config.aiAgents.llm1.provider].model}
+                        onValueChange={(value) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm1: {
+                              ...prev.aiAgents.llm1,
+                              configs: {
+                                ...prev.aiAgents.llm1.configs,
+                                [config.aiAgents.llm1.provider]: { 
+                                  ...prev.aiAgents.llm1.configs[config.aiAgents.llm1.provider], 
+                                  model: value 
+                                }
+                              }
+                            }
+                          }
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {config.aiAgents.llm1.provider === "openai" && (
+                            <>
+                              <SelectItem value="gpt-4">GPT-4</SelectItem>
+                              <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                            </>
+                          )}
+                          {config.aiAgents.llm1.provider === "anthropic" && (
+                            <>
+                              <SelectItem value="claude-3-opus-20240229">Claude 3 Opus</SelectItem>
+                              <SelectItem value="claude-3-sonnet-20240229">Claude 3 Sonnet</SelectItem>
+                              <SelectItem value="claude-3-haiku-20240307">Claude 3 Haiku</SelectItem>
+                            </>
+                          )}
+                          {config.aiAgents.llm1.provider === "gemini" && (
+                            <>
+                              <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                              <SelectItem value="gemini-pro-vision">Gemini Pro Vision</SelectItem>
+                            </>
+                          )}
+                          {config.aiAgents.llm1.provider === "grok" && (
+                            <>
+                              <SelectItem value="grok-beta">Grok Beta</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
 
+            {/* LLM 2 Configuration */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Bot className="mr-2 h-5 w-5" />
-                  OpenAI Configuration
+                  Secondary LLM
                 </CardTitle>
                 <CardDescription>
-                  Advanced AI for detailed job analysis
+                  Configure your second AI agent
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="openai-enabled">Enable OpenAI</Label>
-                  <Switch id="openai-enabled" checked={config.aiAgents.openai.enabled} />
-                </div>
-                <div>
-                  <Label htmlFor="openai-key">API Key</Label>
-                  <Input
-                    id="openai-key"
-                    type="password"
-                    value={config.aiAgents.openai.apiKey}
-                    placeholder="sk-..."
+                  <Label htmlFor="llm2-enabled">Enable Secondary LLM</Label>
+                  <Switch 
+                    id="llm2-enabled" 
+                    checked={config.aiAgents.llm2.enabled}
+                    onCheckedChange={(checked) => setConfig(prev => ({
+                      ...prev,
+                      aiAgents: {
+                        ...prev.aiAgents,
+                        llm2: { ...prev.aiAgents.llm2, enabled: checked }
+                      }
+                    }))}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="openai-model">Model</Label>
-                  <Select value={config.aiAgents.openai.model}>
+                  <Label htmlFor="llm2-name">Agent Name</Label>
+                  <Input
+                    id="llm2-name"
+                    value={config.aiAgents.llm2.name}
+                    onChange={(e) => setConfig(prev => ({
+                      ...prev,
+                      aiAgents: {
+                        ...prev.aiAgents,
+                        llm2: { ...prev.aiAgents.llm2, name: e.target.value }
+                      }
+                    }))}
+                    placeholder="Secondary LLM"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="llm2-provider">Provider</Label>
+                  <Select 
+                    value={config.aiAgents.llm2.provider}
+                    onValueChange={(value) => setConfig(prev => ({
+                      ...prev,
+                      aiAgents: {
+                        ...prev.aiAgents,
+                        llm2: { ...prev.aiAgents.llm2, provider: value }
+                      }
+                    }))}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gpt-4">GPT-4</SelectItem>
-                      <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                      <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                      <SelectItem value="ollama">Ollama</SelectItem>
+                      <SelectItem value="openai">OpenAI</SelectItem>
+                      <SelectItem value="anthropic">Anthropic</SelectItem>
+                      <SelectItem value="gemini">Google Gemini</SelectItem>
+                      <SelectItem value="grok">Grok</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Provider-specific configuration */}
+                {config.aiAgents.llm2.provider === "ollama" && (
+                  <>
+                    <div>
+                      <Label htmlFor="llm2-ollama-endpoint">Endpoint URL</Label>
+                      <Input
+                        id="llm2-ollama-endpoint"
+                        value={config.aiAgents.llm2.configs.ollama.endpoint}
+                        onChange={(e) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm2: {
+                              ...prev.aiAgents.llm2,
+                              configs: {
+                                ...prev.aiAgents.llm2.configs,
+                                ollama: { ...prev.aiAgents.llm2.configs.ollama, endpoint: e.target.value }
+                              }
+                            }
+                          }
+                        }))}
+                        placeholder="http://localhost:11434"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="llm2-ollama-model">Model</Label>
+                      <Select 
+                        value={config.aiAgents.llm2.configs.ollama.model}
+                        onValueChange={(value) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm2: {
+                              ...prev.aiAgents.llm2,
+                              configs: {
+                                ...prev.aiAgents.llm2.configs,
+                                ollama: { ...prev.aiAgents.llm2.configs.ollama, model: value }
+                              }
+                            }
+                          }
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="llama3.1:8b">Llama 3.1 8B</SelectItem>
+                          <SelectItem value="llama3.1:70b">Llama 3.1 70B</SelectItem>
+                          <SelectItem value="codellama">Code Llama</SelectItem>
+                          <SelectItem value="mistral">Mistral</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
+
+                {(config.aiAgents.llm2.provider === "openai" || 
+                  config.aiAgents.llm2.provider === "anthropic" || 
+                  config.aiAgents.llm2.provider === "gemini" || 
+                  config.aiAgents.llm2.provider === "grok") && (
+                  <>
+                    <div>
+                      <Label htmlFor="llm2-api-key">API Key</Label>
+                      <Input
+                        id="llm2-api-key"
+                        type="password"
+                        value={config.aiAgents.llm2.configs[config.aiAgents.llm2.provider].apiKey}
+                        onChange={(e) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm2: {
+                              ...prev.aiAgents.llm2,
+                              configs: {
+                                ...prev.aiAgents.llm2.configs,
+                                [config.aiAgents.llm2.provider]: { 
+                                  ...prev.aiAgents.llm2.configs[config.aiAgents.llm2.provider], 
+                                  apiKey: e.target.value 
+                                }
+                              }
+                            }
+                          }
+                        }))}
+                        placeholder={
+                          config.aiAgents.llm2.provider === "openai" ? "sk-..." :
+                          config.aiAgents.llm2.provider === "anthropic" ? "sk-ant-..." :
+                          config.aiAgents.llm2.provider === "gemini" ? "AI..." :
+                          "xai-..."
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="llm2-model">Model</Label>
+                      <Select 
+                        value={config.aiAgents.llm2.configs[config.aiAgents.llm2.provider].model}
+                        onValueChange={(value) => setConfig(prev => ({
+                          ...prev,
+                          aiAgents: {
+                            ...prev.aiAgents,
+                            llm2: {
+                              ...prev.aiAgents.llm2,
+                              configs: {
+                                ...prev.aiAgents.llm2.configs,
+                                [config.aiAgents.llm2.provider]: { 
+                                  ...prev.aiAgents.llm2.configs[config.aiAgents.llm2.provider], 
+                                  model: value 
+                                }
+                              }
+                            }
+                          }
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {config.aiAgents.llm2.provider === "openai" && (
+                            <>
+                              <SelectItem value="gpt-4">GPT-4</SelectItem>
+                              <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                              <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                            </>
+                          )}
+                          {config.aiAgents.llm2.provider === "anthropic" && (
+                            <>
+                              <SelectItem value="claude-3-opus-20240229">Claude 3 Opus</SelectItem>
+                              <SelectItem value="claude-3-sonnet-20240229">Claude 3 Sonnet</SelectItem>
+                              <SelectItem value="claude-3-haiku-20240307">Claude 3 Haiku</SelectItem>
+                            </>
+                          )}
+                          {config.aiAgents.llm2.provider === "gemini" && (
+                            <>
+                              <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                              <SelectItem value="gemini-pro-vision">Gemini Pro Vision</SelectItem>
+                            </>
+                          )}
+                          {config.aiAgents.llm2.provider === "grok" && (
+                            <>
+                              <SelectItem value="grok-beta">Grok Beta</SelectItem>
+                            </>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>

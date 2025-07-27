@@ -10,7 +10,8 @@ import {
   FileText,
   User,
   MessageSquare,
-  Rss
+  Rss,
+  Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Configuration", href: "/configuration", icon: Settings },
+  { name: "Jobs Database", href: "/jobs", icon: Briefcase },
   { name: "Activity Logs", href: "/logs", icon: Activity },
 ];
 

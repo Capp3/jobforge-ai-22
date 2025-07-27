@@ -21,8 +21,15 @@ import {
   Briefcase,
   Wifi,
   DollarSign,
-  Save
+  Save,
+  Database,
+  ExternalLink,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  Clock
 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 
 export function ConfigurationTabs() {
@@ -113,7 +120,42 @@ Analyze:
 1. Technical challenges
 2. Career growth potential
 3. Company assessment
-4. Application strategy`
+4. Application strategy`,
+    jobs: [
+      {
+        id: "job-1",
+        title: "Senior Broadcast Engineer",
+        company: "BBC",
+        location: "Belfast, UK",
+        status: "approved",
+        processedDate: "2024-01-15",
+        aiRating: "APPROVE",
+        url: "https://example.com/job/1",
+        source: "RSS Feed 1"
+      },
+      {
+        id: "job-2", 
+        title: "Video Systems Engineer",
+        company: "ITV",
+        location: "London, UK",
+        status: "filtered",
+        processedDate: "2024-01-14",
+        aiRating: "REJECT",
+        url: "https://example.com/job/2",
+        source: "RSS Feed 1"
+      },
+      {
+        id: "job-3",
+        title: "Technical Project Manager",
+        company: "Sky",
+        location: "Remote, UK",
+        status: "pending",
+        processedDate: "2024-01-16",
+        aiRating: "MAYBE",
+        url: "https://example.com/job/3",
+        source: "RSS Feed 2"
+      }
+    ]
   });
 
   const handleSave = () => {
@@ -161,7 +203,7 @@ Analyze:
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="basics" className="flex items-center space-x-2">
             <Settings className="h-4 w-4" />
             <span className="hidden sm:inline">Basics</span>
@@ -189,6 +231,10 @@ Analyze:
           <TabsTrigger value="prompt2" className="flex items-center space-x-2">
             <MessageSquare className="h-4 w-4" />
             <span className="hidden sm:inline">P2</span>
+          </TabsTrigger>
+          <TabsTrigger value="jobs" className="flex items-center space-x-2">
+            <Database className="h-4 w-4" />
+            <span className="hidden sm:inline">Jobs</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1029,6 +1075,85 @@ Analyze:
                   className="min-h-[300px] font-mono"
                 />
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Jobs Database Tab */}
+        <TabsContent value="jobs" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Database className="mr-2 h-5 w-5" />
+                Processed Jobs Database
+              </CardTitle>
+              <CardDescription>
+                View all processed job listings and their status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Company</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>AI Rating</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Source</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {config.jobs.map((job) => (
+                    <TableRow key={job.id}>
+                      <TableCell className="font-medium">{job.title}</TableCell>
+                      <TableCell>{job.company}</TableCell>
+                      <TableCell>{job.location}</TableCell>
+                      <TableCell>
+                        <Badge variant={
+                          job.status === 'approved' ? 'default' :
+                          job.status === 'filtered' ? 'destructive' :
+                          'secondary'
+                        }>
+                          {job.status === 'approved' && <CheckCircle className="mr-1 h-3 w-3" />}
+                          {job.status === 'filtered' && <XCircle className="mr-1 h-3 w-3" />}
+                          {job.status === 'pending' && <Clock className="mr-1 h-3 w-3" />}
+                          {job.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {job.aiRating}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="flex items-center">
+                        <Calendar className="mr-1 h-3 w-3" />
+                        {job.processedDate}
+                      </TableCell>
+                      <TableCell>{job.source}</TableCell>
+                      <TableCell>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          asChild
+                        >
+                          <a 
+                            href={job.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center"
+                          >
+                            <ExternalLink className="mr-1 h-3 w-3" />
+                            View Job
+                          </a>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>

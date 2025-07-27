@@ -66,6 +66,8 @@ nav:
     - Progress: progress.md
     - Project Brief: projectbrief.md
     - Supabase Info: supabaseinfo.md
+  - Documentation:
+    - GitHub Pages Setup: github-pages-setup.md
 
 # Plugins
 plugins:

@@ -1,0 +1,67 @@
+/* Custom styles for JobForge AI documentation */
+
+/* Code block styling */
+.md-typeset code {
+  background-color: #f5f5f5;
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+
+/* Admonition styling */
+.md-typeset .admonition {
+  border-radius: 6px;
+}
+
+/* Table styling */
+.md-typeset table {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* Navigation styling */
+.md-nav__link {
+  border-radius: 4px;
+}
+
+.md-nav__link:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Search styling */
+.md-search__input {
+  border-radius: 6px;
+}
+
+/* Button styling */
+.md-button {
+  border-radius: 6px;
+}
+
+/* Footer styling */
+.md-footer {
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Custom callout for important information */
+.callout {
+  padding: 1rem;
+  margin: 1rem 0;
+  border-left: 4px solid #2196f3;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+}
+
+.callout.warning {
+  border-left-color: #ff9800;
+  background-color: #fff3e0;
+}
+
+.callout.success {
+  border-left-color: #4caf50;
+  background-color: #e8f5e8;
+}
+
+.callout.error {
+  border-left-color: #f44336;
+  background-color: #ffebee;
+} 

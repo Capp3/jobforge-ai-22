@@ -1,73 +1,94 @@
-# Welcome to your Lovable project
+# JobForge AI
 
-## Project info
+A job application tracking system built with React, TypeScript, and Supabase.
 
-**URL**: https://lovable.dev/projects/ff3f375b-7d6a-47ec-9c53-7c994e5379eb
+## 📚 Documentation
 
-## How can I edit this code?
+📖 **[View Full Documentation](https://jobforge-ai.github.io/jobforge-ai-22/)** - Complete setup and usage guide
 
-There are several ways of editing your application.
+## Quick Start
 
-**Use Lovable**
+```bash
+# Install dependencies
+npm install
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ff3f375b-7d6a-47ec-9c53-7c994e5379eb) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Visit `http://localhost:5173` to see the application.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Features
 
-**Use GitHub Codespaces**
+- **Job Tracking**: Keep track of all your job applications in one place
+- **AI-Powered Analysis**: Get intelligent ratings and insights for job opportunities  
+- **Status Management**: Track applications through different stages
+- **Local Deployment**: Run entirely on your own infrastructure
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Technology Stack
 
-## What technologies are used for this project?
+- **Frontend**: React, TypeScript, Vite, shadcn/ui
+- **Backend**: Supabase (PostgreSQL database + API)
+- **Deployment**: Self-hosted with Docker
 
-This project is built with:
+## Local Setup
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This application is designed to work with a self-hosted Supabase instance. For detailed setup instructions, see the [Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/setup-guide/).
 
-## How can I deploy this project?
+### Prerequisites
 
-Simply open [Lovable](https://lovable.dev/projects/ff3f375b-7d6a-47ec-9c53-7c994e5379eb) and click on Share -> Publish.
+- Node.js and npm
+- Access to a self-hosted Supabase instance
+- Basic understanding of PostgreSQL
 
-## Can I connect a custom domain to my Lovable project?
+### Quick Setup
 
-Yes, you can!
+1. Update Supabase configuration in `src/integrations/supabase/client.ts`
+2. Set up database schema (see [Database Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/database-setup-guide/))
+3. Start the development server with `npm run dev`
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Development
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Documentation
+
+This project uses MkDocs for documentation. To work with the documentation locally:
+
+```bash
+# Install MkDocs dependencies
+pip install -r requirements.txt
+
+# Serve documentation locally
+mkdocs serve
+
+# Build documentation
+mkdocs build
+```
+
+### Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+- 📖 [Documentation](https://jobforge-ai.github.io/jobforge-ai-22/)
+- 🐛 [Report Issues](https://github.com/jobforge-ai/jobforge-ai-22/issues)
+- 💬 [Discussions](https://github.com/jobforge-ai/jobforge-ai-22/discussions)
+
+---
+
+Built with ❤️ using modern web technologies

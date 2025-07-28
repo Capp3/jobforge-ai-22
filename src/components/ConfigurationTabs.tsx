@@ -27,14 +27,20 @@ import {
   Calendar,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  TestTube2,
+  Loader2,
+  Check,
+  X
 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
 export function ConfigurationTabs() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("basics");
+  const [testingLLM, setTestingLLM] = useState<string | null>(null);
 
   // Mock configuration state
   const [config, setConfig] = useState({
@@ -45,6 +51,7 @@ export function ConfigurationTabs() {
       salaryRange: { min: 40000, max: 80000 },
       currency: "GBP",
       frequency: "daily",
+      allowNoSalary: false,
       smtp: {
         host: "",
         port: 587,
@@ -183,6 +190,36 @@ Analyze:
       ...prev,
       rssFeeds: prev.rssFeeds.filter(feed => feed.id !== id)
     }));
+  };
+
+  const testLLMConnection = async (llmKey: string, provider: string) => {
+    setTestingLLM(llmKey);
+    try {
+      // Simulate API test call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast({
+        title: "Connection Successful",
+        description: `${provider} LLM is working correctly.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Connection Failed",
+        description: `Unable to connect to ${provider} LLM.`,
+        variant: "destructive",
+      });
+    } finally {
+      setTestingLLM(null);
+    }
+  };
+
+  const getAvailableVariables = () => {
+    return [
+      "{{biography}}", "{{job_title}}", "{{company}}", "{{location}}", 
+      "{{job_description}}", "{{salary_range}}", "{{remote_preference}}", 
+      "{{target_locations}}", "{{target_job_titles}}", "{{min_salary}}", 
+      "{{max_salary}}", "{{currency}}", "{{requirements}}", "{{source}}"
+    ];
   };
 
   return (
@@ -329,6 +366,17 @@ Analyze:
                       placeholder="80000"
                     />
                   </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="allowNoSalary"
+                    checked={config.basics.allowNoSalary}
+                    onCheckedChange={(checked) => setConfig(prev => ({
+                      ...prev,
+                      basics: { ...prev.basics, allowNoSalary: !!checked }
+                    }))}
+                  />
+                  <Label htmlFor="allowNoSalary">Include jobs with no salary listed</Label>
                 </div>
               </CardContent>
             </Card>
@@ -740,10 +788,31 @@ Analyze:
                         </SelectContent>
                       </Select>
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                   </>
+                 )}
+
+                 <div className="pt-4 border-t">
+                   <Button 
+                     onClick={() => testLLMConnection('llm1', config.aiAgents.llm1.provider)}
+                     disabled={testingLLM === 'llm1'}
+                     variant="outline"
+                     className="w-full"
+                   >
+                     {testingLLM === 'llm1' ? (
+                       <>
+                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                         Testing...
+                       </>
+                     ) : (
+                       <>
+                         <TestTube2 className="mr-2 h-4 w-4" />
+                         Test Connection
+                       </>
+                     )}
+                   </Button>
+                 </div>
+               </CardContent>
+             </Card>
 
             {/* LLM 2 Configuration */}
             <Card>
@@ -955,10 +1024,31 @@ Analyze:
                         </SelectContent>
                       </Select>
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
+                   </>
+                 )}
+
+                 <div className="pt-4 border-t">
+                   <Button 
+                     onClick={() => testLLMConnection('llm2', config.aiAgents.llm2.provider)}
+                     disabled={testingLLM === 'llm2'}
+                     variant="outline"
+                     className="w-full"
+                   >
+                     {testingLLM === 'llm2' ? (
+                       <>
+                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                         Testing...
+                       </>
+                     ) : (
+                       <>
+                         <TestTube2 className="mr-2 h-4 w-4" />
+                         Test Connection
+                       </>
+                     )}
+                   </Button>
+                 </div>
+               </CardContent>
+             </Card>
           </div>
         </TabsContent>
 
@@ -1025,11 +1115,9 @@ Analyze:
                 <div className="p-4 bg-muted rounded-lg">
                   <p className="text-sm font-medium mb-2">Available Variables:</p>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">{"{{biography}}"}</Badge>
-                    <Badge variant="outline">{"{{job_title}}"}</Badge>
-                    <Badge variant="outline">{"{{company}}"}</Badge>
-                    <Badge variant="outline">{"{{location}}"}</Badge>
-                    <Badge variant="outline">{"{{job_description}}"}</Badge>
+                    {getAvailableVariables().map((variable, index) => (
+                      <Badge key={index} variant="outline">{variable}</Badge>
+                    ))}
                   </div>
                 </div>
                 <Textarea
@@ -1060,12 +1148,9 @@ Analyze:
                 <div className="p-4 bg-muted rounded-lg">
                   <p className="text-sm font-medium mb-2">Available Variables:</p>
                   <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">{"{{biography}}"}</Badge>
-                    <Badge variant="outline">{"{{job_title}}"}</Badge>
-                    <Badge variant="outline">{"{{company}}"}</Badge>
-                    <Badge variant="outline">{"{{location}}"}</Badge>
-                    <Badge variant="outline">{"{{job_description}}"}</Badge>
-                    <Badge variant="outline">{"{{cv}}"}</Badge>
+                    {getAvailableVariables().map((variable, index) => (
+                      <Badge key={index} variant="outline">{variable}</Badge>
+                    ))}
                   </div>
                 </div>
                 <Textarea

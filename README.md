@@ -23,29 +23,30 @@ Visit `http://localhost:5173` to see the application.
 - **Job Tracking**: Keep track of all your job applications in one place
 - **AI-Powered Analysis**: Get intelligent ratings and insights for job opportunities  
 - **Status Management**: Track applications through different stages
-- **Local Deployment**: Run entirely on your own infrastructure
+- **Cloud Deployment**: Works with Supabase Cloud for easy setup
 
 ## Technology Stack
 
 - **Frontend**: React, TypeScript, Vite, shadcn/ui
-- **Backend**: Supabase (PostgreSQL database + API)
-- **Deployment**: Self-hosted with Docker
+- **Backend**: Supabase Cloud (PostgreSQL database + API)
+- **Deployment**: Serve locally or deploy to any static hosting service
 
-## Local Setup
+## Setup
 
-This application is designed to work with a self-hosted Supabase instance. For detailed setup instructions, see the [Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/setup-guide/).
+This application works with Supabase Cloud. For detailed setup instructions, see the [Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/setup-guide/).
 
 ### Prerequisites
 
 - Node.js and npm
-- Access to a self-hosted Supabase instance
+- Supabase Cloud account (free tier available)
 - Basic understanding of PostgreSQL
 
 ### Quick Setup
 
-1. Update Supabase configuration in `src/integrations/supabase/client.ts`
-2. Set up database schema (see [Database Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/database-setup-guide/))
-3. Start the development server with `npm run dev`
+1. Create a Supabase Cloud project
+2. Update Supabase configuration in `src/integrations/supabase/client.ts`
+3. Set up database schema (see [Database Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/database-setup-guide/))
+4. Start the development server with `npm run dev`
 
 ## Development
 
@@ -68,8 +69,25 @@ mkdocs build
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
-- `npm run preview` - Preview production build
+- `npm run preview` - Preview production build locally with Vite
+- `npm run serve` - Serve production build with http-server
 - `npm run lint` - Run ESLint
+
+## Production Deployment
+
+After building the application:
+
+```bash
+# Build for production
+npm run build
+
+# Serve locally with http-server
+npm run serve
+```
+
+The application will be available at `http://localhost:8080`.
+
+You can also deploy the contents of the `dist` directory to any static hosting service like Vercel, Netlify, or GitHub Pages.
 
 ## Contributing
 

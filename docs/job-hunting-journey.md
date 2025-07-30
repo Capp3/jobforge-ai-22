@@ -34,25 +34,25 @@ flowchart TD
     M -->|Yes| N[Skip Job<br/>Log as duplicate]
     M -->|No| O[Google Sheets: Add New Job<br/>Insert with status 'new']
 
-    %% AI Processing Pipeline
-    O --> P[Code Node: Prepare AI Data<br/>Format job info + preferences for AI]
+    %% Two-Tier LLM Processing Pipeline
+    O --> P[Code Node: Prepare Basic Filter Data<br/>Format job info + user preferences]
     P --> Q[HTTP Request: Check Ollama<br/>Test if service available]
 
     %% Ollama Availability Check
     Q --> R{Ollama Available?}
     R -->|No| S[Fatal Error Node<br/>Stop workflow, send alert]
-    R -->|Yes| T[HTTP Request: Ollama API<br/>Initial filtering with Prompt 1]
+    R -->|Yes| T[HTTP Request: Ollama API<br/>LLM Agent 1: Basic Filtering]
 
-    %% AI Filtering
-    T --> U[Code Node: Parse AI Response<br/>Extract rating & reasoning]
-    U --> V{Job Approved?}
-    V -->|No| W[Google Sheets: Update Status<br/>Mark as 'filtered_out']
-    V -->|Yes| X[Code Node: Prepare Detailed Analysis<br/>Format for advanced AI]
+    %% LLM Agent 1: Basic Filtering
+    T --> U[Code Node: Parse Basic Filter Response<br/>Extract PASS/FAIL decision]
+    U --> V{Meets Basic Criteria?}
+    V -->|No| W[Google Sheets: Update Status<br/>Mark as 'filtered_out' + reason]
+    V -->|Yes| X[Code Node: Prepare Deep Analysis<br/>Format for premium LLM]
 
-    %% Advanced AI Analysis
-    X --> Y[HTTP Request: Advanced AI<br/>Detailed analysis with Prompt 2]
-    Y --> Z[Code Node: Parse Detailed Analysis<br/>Extract structured insights]
-    Z --> AA[Code Node: Format for Email<br/>Prepare job summary]
+    %% LLM Agent 2: Deep Review
+    X --> Y[HTTP Request: Premium LLM API<br/>LLM Agent 2: Deep Review]
+    Y --> Z[Code Node: Parse Deep Analysis<br/>Extract Red/Amber/Green rating]
+    Z --> AA[Code Node: Format Analysis Results<br/>Prepare comprehensive summary]
 
     %% Email Preparation
     AA --> BB[Code Node: Batch Jobs<br/>Group approved jobs]
@@ -124,19 +124,24 @@ flowchart TD
     H --> L[Save to SQLite<br/>jobs table with status 'new']
     L --> M[Job Added to Dashboard<br/>Real-time UI update]
 
-    %% Future RSS Implementation
-    I --> N[RSS Feed Parser<br/>Extract job listings]
+    %% RSS Feed Implementation (Required)
+    I --> N[RSS Feed Parser<br/>Daily scheduled retrieval]
     N --> O[Duplicate Detection<br/>Check existing jobs by URL/title]
     O --> P{Duplicate Found?}
     P -->|Yes| Q[Skip Job<br/>Log as duplicate]
     P -->|No| R[Add to Database<br/>status = 'discovered']
 
-    %% AI Integration (Future)
-    R --> S[AI Analysis Pipeline<br/>LLM integration]
+    %% Two-Tier LLM Analysis Pipeline
+    R --> S[LLM Agent 1: Basic Filtering<br/>Ollama (Local) - Cost Efficient]
     L --> S
-    S --> T[Job Analysis<br/>Relevance, Skills Match, etc.]
-    T --> U[AI Rating & Notes<br/>Store in job record]
-    U --> V[Dashboard Update<br/>Show AI insights]
+    S --> T[Check Basic Requirements<br/>Location, Salary, Job Titles]
+    T --> U{Meets Basic Criteria?}
+    U -->|No| V[Mark as Filtered Out<br/>Save rejection reason]
+    U -->|Yes| W[LLM Agent 2: Deep Review<br/>Premium LLM - Detailed Analysis]
+    W --> X[Comprehensive Job Analysis<br/>Why apply, what to know, red flags]
+    X --> Y[Red/Amber/Green Rating<br/>+ Concise feedback]
+    Y --> Z[Store Analysis Results<br/>Rating, feedback, recommendations]
+    Z --> AA[Dashboard Update<br/>Show AI insights & rating]
 
     %% Job Detail Management
     J --> W[View/Edit Job Details<br/>Status, Notes, Follow-up dates]
@@ -181,9 +186,9 @@ flowchart TD
 
     class A,B,C,D,E,G,H,J,K,W,X user
     class F,L,M,BB,CC,HH current
-    class I,N,O,R,S,T,U,V,AA,DD,EE,JJ,KK,LL future
+    class I,N,O,R,S,T,U,V,W,X,Y,Z,AA,DD,EE,JJ,KK,LL future
     class F,L,BB,HH,II storage
-    class S,T,U,V ai
+    class S,T,U,V,W,X,Y,Z ai
     class DD,EE,KK email
     class FF,GG,LL analytics
 ```
@@ -198,8 +203,8 @@ flowchart TD
 | **Data Storage** | Google Sheets | Local SQLite database |
 | **User Interface** | Email notifications only | Full React dashboard |
 | **Deployment** | Cloud-based n8n instance | Local-first application |
-| **AI Integration** | Ollama + Advanced AI pipeline | Planned LLM integration |
-| **RSS Processing** | Core feature | Future enhancement |
+| **AI Integration** | Ollama + Advanced AI pipeline | Two-tier LLM architecture (Ollama + Premium) |
+| **RSS Processing** | Core feature | Required daily automation |
 | **User Control** | Set-and-forget automation | Interactive job management |
 
 ### Benefits of Current Approach
@@ -229,15 +234,17 @@ flowchart TD
 
 ### Phase 2: Core Automation (In Progress)
 - **Application Logic Flow**: Complete job hunting workflow
-- **LLM Integration**: AI-powered job analysis and matching
-- **Dashboard Enhancement**: Improved UI with AI insights
-- **RSS Feed Integration**: Automated job discovery
-- **Email Notification System**: Alerts and updates
+- **Two-Tier LLM Integration**: Ollama basic filtering + Premium deep analysis
+- **RSS Feed Integration**: Daily automated job discovery (Required)
+- **Cost Control System**: LLM usage monitoring and limits
+- **Dashboard Enhancement**: Show AI ratings and cost tracking
 
 ### Phase 3: Advanced Features (Future)
-- **Advanced Analytics**: Job market insights and trends
-- **Machine Learning**: Improve matching accuracy over time
-- **Integration APIs**: Connect with job platforms
+- **Email Notification System**: Alerts and updates
+- **LinkedIn Email Integration**: Forward and parse LinkedIn job emails
+- **Advanced Analytics**: Job market insights and cost optimization
+- **Machine Learning**: Improve LLM prompt effectiveness over time
+- **Integration APIs**: Connect with additional job platforms
 - **Mobile Support**: Responsive design and PWA capabilities
 
 ## User Journey Scenarios
@@ -251,12 +258,13 @@ flowchart TD
 6. Analyzes success patterns over time
 
 ### Scenario 2: Semi-Automated Hunter (Near Future)
-1. RSS feeds automatically discover new jobs daily
-2. AI filters jobs based on user preferences
-3. User reviews AI-recommended jobs in dashboard
-4. Applies to selected opportunities
-5. AI provides application strategy suggestions
-6. Email notifications for follow-ups and deadlines
+1. RSS feeds automatically discover new jobs daily at scheduled time
+2. LLM Agent 1 (Ollama) performs cost-free basic filtering against user preferences
+3. LLM Agent 2 (Premium) provides deep analysis for jobs that pass initial filter
+4. User reviews jobs with Red/Amber/Green ratings and AI insights in dashboard
+5. AI provides specific application strategy and highlights red flags
+6. User applies to selected opportunities with AI-generated guidance
+7. Email notifications for follow-ups and deadlines
 
 ### Scenario 3: Fully Automated Assistant (Long-term Vision)
 1. System continuously monitors job market
@@ -279,20 +287,23 @@ flowchart LR
     C --> B
     B --> A
 
-    E[RSS Feeds<br/>Future] -.-> F[RSS Parser<br/>Future]
+    E[RSS Feeds<br/>Daily] -.-> F[RSS Parser<br/>Scheduled]
     F -.-> C
     
-    G[LLM Service<br/>Future] -.-> H[AI Analysis<br/>Future]
+    G[Ollama (Local)<br/>Agent 1] -.-> H[Basic Filtering<br/>Cost-Free]
     H -.-> C
     
-    I[Email Service<br/>Future] -.-> J[Notifications<br/>Future]
-    J -.-> A
+    I[Premium LLM<br/>Agent 2] -.-> J[Deep Analysis<br/>Pay-per-use]
+    J -.-> C
+    
+    K[Email Service<br/>Future] -.-> L[Notifications<br/>Future]
+    L -.-> A
 
     classDef current fill:#e8f5e8
     classDef future fill:#fff3e0
     
     class A,B,C,D current
-    class E,F,G,H,I,J future
+    class E,F,G,H,I,J,K,L future
 ```
 
 ### Component Integration
@@ -306,22 +317,236 @@ flowchart LR
    - Email Service for notifications
    - Analytics Engine for insights
 
+## LLM Agent Configuration
+
+### Two-Tier LLM Architecture
+
+The system implements a sophisticated two-tier LLM approach to balance cost efficiency with comprehensive analysis:
+
+#### **LLM Agent 1: Basic Filtering (Cost-Efficient)**
+- **Purpose**: Initial screening for basic requirements
+- **Provider**: Ollama (Local) - No API costs
+- **Function**: Check location, salary, job titles against user preferences
+- **Output**: PASS/FAIL decision with brief reasoning
+- **Cost**: Free (local processing)
+
+#### **LLM Agent 2: Deep Review (Premium Analysis)**
+- **Purpose**: Comprehensive job opportunity analysis
+- **Provider**: Selectable premium LLM (OpenAI, OpenRouter, Gemini)
+- **Function**: Detailed analysis with actionable insights
+- **Output**: Red/Amber/Green rating + concise feedback + recommendations
+- **Cost**: Pay-per-use (gated by first agent approval)
+
+### LLM Provider Configuration
+
+#### **Available Providers**
+1. **Ollama (Local)**
+   - Models: Auto-detected via `ollama list` command
+   - Cost: Free
+   - Use Case: Agent 1 (Basic Filtering)
+   - Model Selection: Dynamic dropdown populated from available models
+
+2. **OpenAI**
+   - Models: GPT-4, GPT-3.5-turbo, GPT-4-turbo
+   - Cost: Pay-per-token
+   - Use Case: Agent 2 (Deep Review)
+   - API Key: Required
+
+3. **OpenRouter**
+   - Models: Multiple providers (Anthropic, Google, Meta, etc.)
+   - Cost: Pay-per-token
+   - Use Case: Agent 2 (Deep Review)
+   - API Key: Required
+
+4. **Google Gemini**
+   - Models: Gemini Pro, Gemini Pro Vision
+   - Cost: Pay-per-token
+   - Use Case: Agent 2 (Deep Review)
+   - API Key: Required
+
+#### **Model Detection for Ollama**
+```javascript
+// Test function to poll available Ollama models
+async function getAvailableOllamaModels() {
+  try {
+    const response = await fetch('http://localhost:11434/api/tags');
+    const data = await response.json();
+    return data.models.map(model => ({
+      name: model.name,
+      size: model.size,
+      modified_at: model.modified_at
+    }));
+  } catch (error) {
+    console.error('Ollama not available:', error);
+    return [];
+  }
+}
+```
+
+### Daily Workflow Configuration
+
+#### **Scheduling & Cost Control**
+- **RSS Retrieval**: Daily scheduled requests (configurable interval)
+- **LLM Usage Limits**: Daily request limits per LLM provider
+- **Cost Monitoring**: Track API usage and costs
+- **Fallback Strategy**: Graceful degradation if premium LLM unavailable
+
+#### **Configuration Options**
+```json
+{
+  "rss": {
+    "polling_interval": "daily",
+    "feeds": ["feed1.xml", "feed2.xml"],
+    "max_jobs_per_run": 50
+  },
+  "llm_agent_1": {
+    "provider": "ollama",
+    "model": "llama3.1:8b",
+    "daily_limit": 100,
+    "cost_limit": 0
+  },
+  "llm_agent_2": {
+    "provider": "openai",
+    "model": "gpt-4",
+    "daily_limit": 20,
+    "cost_limit": 5.00
+  },
+  "cost_control": {
+    "daily_budget": 10.00,
+    "alert_threshold": 8.00,
+    "auto_pause": true
+  }
+}
+```
+
+### LLM Prompt Specifications
+
+#### **Agent 1: Basic Filtering Prompt**
+```markdown
+You are a job filtering assistant. Evaluate this job listing against basic requirements.
+
+USER PREFERENCES:
+- Preferred Locations: {locations}
+- Salary Range: {salary_range}
+- Job Titles: {job_titles}
+- Work Mode: {work_mode}
+
+JOB LISTING:
+Title: {job_title}
+Company: {company}
+Location: {location}
+Description: {description}
+
+TASK:
+1. Check if job location matches preferred locations
+2. Verify salary (if mentioned) is within range
+3. Confirm job title aligns with preferences
+4. Assess work mode compatibility
+
+OUTPUT FORMAT (JSON):
+{
+  "decision": "PASS" | "FAIL",
+  "reasoning": "Brief explanation",
+  "confidence": "HIGH" | "MEDIUM" | "LOW",
+  "matches": ["location_match", "salary_match", "title_match"]
+}
+```
+
+#### **Agent 2: Deep Review Prompt**
+```markdown
+You are a senior career advisor. Provide a comprehensive analysis of this job opportunity.
+
+CANDIDATE PROFILE:
+{detailed_profile}
+
+JOB DETAILS:
+Title: {job_title}
+Company: {company}
+Location: {location}
+Full Description: {complete_description}
+
+ANALYSIS REQUIREMENTS:
+1. **Why This Job is Worth Applying**: Specific opportunities and benefits
+2. **Technical Challenges**: Main technical challenges and learning opportunities
+3. **Career Growth Potential**: How this role advances career trajectory
+4. **Company Assessment**: Company stability, culture, and reputation
+5. **Potential Red Flags**: Concerns requiring investigation
+6. **Application Strategy**: How to approach the application process
+
+OUTPUT FORMAT (JSON):
+{
+  "rating": "GREEN" | "AMBER" | "RED",
+  "confidence": "HIGH" | "MEDIUM" | "LOW",
+  "why_apply": "2-3 sentences on opportunities",
+  "technical_challenges": "Key challenges and learning opportunities",
+  "career_growth": "Career advancement potential",
+  "company_assessment": "Company evaluation and culture fit",
+  "red_flags": ["flag1", "flag2"],
+  "application_strategy": "Specific application approach",
+  "key_takeaways": ["takeaway1", "takeaway2", "takeaway3"]
+}
+```
+
+## RSS Feed Integration (Required)
+
+### Daily RSS Processing
+- **Schedule**: Daily automated retrieval (configurable time)
+- **Feeds**: Multiple RSS feed sources for comprehensive coverage
+- **Duplicate Detection**: Prevent processing same jobs multiple times
+- **Error Handling**: Graceful failure handling for individual feeds
+
+### RSS Configuration
+```json
+{
+  "rss_feeds": [
+    "https://rss.app/feeds/_dut10XITtqVqfwp1.xml",
+    "https://example.com/jobs.xml",
+    "https://another.com/opportunities.xml"
+  ],
+  "processing": {
+    "schedule": "daily",
+    "time": "09:00",
+    "timezone": "UTC",
+    "max_items_per_feed": 50,
+    "rate_limit_ms": 1000
+  },
+  "duplicate_detection": {
+    "method": "url_hash",
+    "fallback": "title_company_hash"
+  }
+}
+```
+
+## Future Enhancements
+
+### LinkedIn Email Integration
+- **Email Forwarding**: Forward LinkedIn job emails to system
+- **Email Parsing**: Extract job details from LinkedIn email format
+- **Automatic Import**: Convert emails to job records
+- **Source Attribution**: Track job source (RSS vs LinkedIn)
+
+### Advanced Features
+- **Email Templates**: Customizable notification templates
+- **Application Tracking**: Monitor application status changes
+- **Interview Preparation**: AI-powered interview prep resources
+- **Market Analytics**: Job market trends and salary insights
+
 ## Next Steps
 
 ### Immediate Development Focus
 1. **Application Logic Flow**: Create seamless job hunting workflow
-2. **LLM Integration**: Add AI-powered job analysis
-3. **Dashboard Enhancement**: Improve user experience
-4. **RSS Feed Integration**: Automate job discovery
-5. **Email Notifications**: Keep users informed
+2. **LLM Integration**: Implement two-tier LLM architecture
+3. **RSS Feed Integration**: Daily automated job discovery
+4. **Dashboard Enhancement**: Show LLM ratings and insights
+5. **Cost Control System**: Monitor and limit LLM usage
 
 ### Migration Path from n8n Concept
 - **Retain Core Workflow Logic**: Adapt n8n node logic to Express.js functions
 - **Replace Google Sheets**: Use SQLite for better performance and privacy
 - **Enhance User Experience**: Add interactive dashboard instead of email-only
-- **Modular AI Integration**: Implement AI services as pluggable components
-- **Flexible Automation**: Allow users to control automation level
+- **Modular LLM Integration**: Implement configurable LLM providers
+- **Flexible Automation**: Allow users to control automation level and costs
 
 ---
 
-This journey map shows how JobForge AI has evolved from a fully automated n8n workflow concept to a user-centric local application while maintaining the core vision of AI-powered job hunting assistance. The current implementation provides immediate value while building toward the original automation goals. 
+This journey map shows how JobForge AI has evolved from a fully automated n8n workflow concept to a user-centric local application with intelligent LLM-powered job analysis. The two-tier architecture provides cost-effective filtering while maintaining comprehensive analysis capabilities for promising opportunities. 

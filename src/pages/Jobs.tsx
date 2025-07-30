@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
+import { JobService } from "@/services/jobService";
 import { useToast } from "@/hooks/use-toast";
 
 interface Job {
@@ -32,13 +32,8 @@ export default function Jobs() {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const { data, error } = await supabase
-          .from('jobs')
-          .select('*')
-          .order('date_processed', { ascending: false });
-
-        if (error) throw error;
-        setJobs(data || []);
+        const data = await JobService.getJobs();
+        setJobs(data);
       } catch (error) {
         console.error('Error fetching jobs:', error);
         toast({

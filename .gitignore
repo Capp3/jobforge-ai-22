@@ -30,6 +30,19 @@ dist-ssr
 .env.test.local
 .env.production.local
 
+# SQLite Database
+data/
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Backup files
+backups/
+*.backup
+
 # MkDocs build output
 site/
 .cache/
@@ -57,4 +70,5 @@ wheels/
 *.egg
 MANIFEST
 
+# Legacy files (can be removed)
 docs/supabaseinfo.md

@@ -1,143 +1,375 @@
-# Database Setup Guide for Local Supabase Instance
+# Database Setup Guide for JobForge AI
 
-This document outlines the steps to set up your local Supabase database with the correct schema for the JobForge AI application.
+This document outlines the SQLite database structure and setup for the JobForge AI application. The database is automatically created and configured when you start the application.
 
-## Prerequisites
+## Overview
 
-- Access to the Supabase Studio dashboard at http://192.168.1.17:3000
-- Login credentials (Username: `supabase`, Password: `homeland`)
+JobForge AI uses SQLite as its database solution, providing:
+- **Local storage**: Complete data ownership and privacy
+- **Zero configuration**: Automatic setup on first run
+- **High performance**: Optimized for single-user applications
+- **Portability**: Single file database for easy backup/restore
 
-## Database Schema Setup
+## Automatic Database Setup
 
-### Option 1: Running Migration Scripts
+### No Manual Setup Required!
 
-The application includes migration scripts in the `supabase/migrations` directory that can be used to set up the database schema.
+The SQLite database is automatically initialized when you first start the backend server:
 
-1. Log in to the Supabase Studio dashboard
-2. Navigate to the SQL Editor
-3. Copy the contents of each migration file and execute them in order:
-   - First run `20250727125308-b7288ae2-d15c-4860-8d10-f28122251b9b.sql`
-   - Then run `20250727125340-0022f869-e980-4f80-8c12-17e759f78917.sql`
+```bash
+npm run server:dev
+# or
+npm run dev:full
+```
 
-### Option 2: Manual Table Creation
+On first startup, the system automatically:
+1. Creates the `data/` directory if it doesn't exist
+2. Creates the `data/jobforge.db` SQLite database file
+3. Sets up all required tables with proper schema
+4. Creates indexes for optimal performance
+5. Enables foreign key constraints
 
-If you prefer to set up the schema manually or modify it for a local-only setup, follow these steps:
+## Database Schema
 
-1. Log in to the Supabase Studio dashboard
-2. Navigate to the SQL Editor
-3. Create the jobs table with the following SQL:
+### Tables Overview
+
+The database consists of four main tables designed to support current job tracking needs and future automation features:
+
+#### 1. Jobs Table (`jobs`)
+Primary table for storing job listings and application tracking data.
 
 ```sql
-CREATE TABLE public.jobs (
-  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID, -- Removed the reference to auth.users for local-only setup
-  title TEXT NOT NULL,
-  company TEXT NOT NULL,
-  location TEXT,
-  salary_range TEXT,
-  job_url TEXT,
-  description TEXT,
-  requirements TEXT,
-  ai_rating INTEGER CHECK (ai_rating >= 1 AND ai_rating <= 10),
-  ai_notes TEXT,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'applied', 'interview', 'rejected', 'offer')),
-  source TEXT, -- RSS feed or manual entry
-  date_posted TIMESTAMP WITH TIME ZONE,
-  date_processed TIMESTAMP WITH TIME ZONE DEFAULT now(),
-  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
-  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+CREATE TABLE jobs (
+  id TEXT PRIMARY KEY,              -- Unique job identifier
+  title TEXT NOT NULL,              -- Job title
+  company TEXT NOT NULL,            -- Company name
+  location TEXT,                    -- Job location
+  salary_range TEXT,                -- Salary information
+  job_url TEXT,                     -- Direct link to job posting
+  description TEXT,                 -- Job description
+  requirements TEXT,                -- Job requirements
+  ai_rating INTEGER,                -- AI-generated rating (1-10)
+  ai_notes TEXT,                    -- AI-generated notes
+  status TEXT DEFAULT 'pending',   -- Application status
+  source TEXT,                      -- Source (RSS feed, manual, etc.)
+  date_posted TEXT,                 -- When job was posted
+  date_processed TEXT DEFAULT CURRENT_TIMESTAMP,  -- When processed
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,      -- Record creation
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,      -- Last update
+  unique_id TEXT UNIQUE,            -- Unique identifier for deduplication
+  rating TEXT,                      -- Detailed rating information
+  reasoning TEXT,                   -- AI reasoning for decisions
+  top_matches TEXT,                 -- JSON: Top skill matches
+  detailed_analysis TEXT,           -- JSON: Detailed AI analysis
+  emailed BOOLEAN DEFAULT 0,        -- Whether job was emailed
+  processing_error TEXT,            -- Any processing errors
+  published_date TEXT               -- Original publication date
 );
-
--- Create function to update timestamps
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Create trigger for automatic timestamp updates
-CREATE TRIGGER update_jobs_updated_at
-  BEFORE UPDATE ON public.jobs
-  FOR EACH ROW
-  EXECUTE FUNCTION public.update_updated_at_column();
 ```
 
-## Setting Up Row-Level Security (RLS)
-
-For a local-only application without authentication, you can either disable RLS or set up policies that allow all operations.
-
-### Option 1: Disable RLS (Recommended for Local-Only Apps)
+#### 2. Preferences Table (`preferences`)
+User job search preferences and AI configuration.
 
 ```sql
-ALTER TABLE public.jobs DISABLE ROW LEVEL SECURITY;
+CREATE TABLE preferences (
+  id TEXT PRIMARY KEY,              -- Unique preferences identifier
+  preferred_locations TEXT NOT NULL,    -- JSON: Preferred locations
+  work_mode TEXT NOT NULL,              -- JSON: Remote/hybrid/onsite
+  travel_willingness TEXT NOT NULL,     -- Travel preferences
+  salary_range TEXT NOT NULL,           -- Expected salary range
+  career_level TEXT NOT NULL,           -- JSON: Career level preferences
+  tech_stack TEXT NOT NULL,             -- JSON: Technology preferences
+  company_size TEXT NOT NULL,           -- JSON: Company size preferences
+  ollama_endpoint TEXT,                 -- Ollama API endpoint
+  ollama_model TEXT,                    -- Ollama model name
+  advanced_ai_model TEXT,               -- Advanced AI model config
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-### Option 2: Create Open RLS Policies
+#### 3. RSS Feeds Table (`rss_feeds`)
+Configuration for RSS feed sources (future automation feature).
 
 ```sql
-ALTER TABLE public.jobs ENABLE ROW LEVEL SECURITY;
-
--- Create policies for public access
-CREATE POLICY "Anyone can view jobs" 
-ON public.jobs 
-FOR SELECT 
-USING (true);
-
-CREATE POLICY "Anyone can create jobs" 
-ON public.jobs 
-FOR INSERT 
-WITH CHECK (true);
-
-CREATE POLICY "Anyone can update jobs" 
-ON public.jobs 
-FOR UPDATE 
-USING (true);
-
-CREATE POLICY "Anyone can delete jobs" 
-ON public.jobs 
-FOR DELETE 
-USING (true);
+CREATE TABLE rss_feeds (
+  id TEXT PRIMARY KEY,              -- Unique feed identifier
+  url TEXT NOT NULL,                -- RSS feed URL
+  name TEXT NOT NULL,               -- Human-readable feed name
+  active BOOLEAN DEFAULT 1,         -- Whether feed is active
+  last_processed TEXT,              -- Last processing timestamp
+  processing_error TEXT,            -- Last processing error
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-## Sample Data for Testing
-
-Add some sample jobs to test the application:
+#### 4. Processing Stats Table (`processing_stats`)
+Performance metrics for algorithm processing (future feature).
 
 ```sql
-INSERT INTO public.jobs (title, company, location, salary_range, job_url, ai_rating, ai_notes, status, source, date_posted)
-VALUES 
-  ('Senior Frontend Developer', 'TechCorp Inc', 'Remote', '$80k - $120k', 'https://example.com/job1', 8, 'Great match for React skills', 'pending', 'RSS Feed 1', now() - interval '2 days'),
-  ('Full Stack Engineer', 'StartupXYZ', 'San Francisco, CA', '$90k - $130k', 'https://example.com/job2', 9, 'Perfect fit for full-stack experience', 'applied', 'RSS Feed 2', now() - interval '1 day'),
-  ('React Developer', 'BigTech Solutions', 'New York, NY', '$70k - $100k', 'https://example.com/job3', 6, 'Good opportunity but lower salary', 'interview', 'Manual Entry', now() - interval '3 days');
+CREATE TABLE processing_stats (
+  id TEXT PRIMARY KEY,              -- Unique stats record
+  run_date TEXT NOT NULL,           -- Processing run date
+  total_jobs_processed INTEGER DEFAULT 0,  -- Total jobs processed
+  jobs_approved INTEGER DEFAULT 0,         -- Jobs approved by AI
+  jobs_filtered INTEGER DEFAULT 0,         -- Jobs filtered out
+  jobs_emailed INTEGER DEFAULT 0,          -- Jobs sent via email
+  processing_time_seconds INTEGER,         -- Processing duration
+  errors_count INTEGER DEFAULT 0,          -- Number of errors
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-## Verifying Database Setup
+### Indexes for Performance
 
-To verify that your database is set up correctly:
+The database automatically creates these indexes for optimal query performance:
 
-1. Navigate to the Table Editor in Supabase Studio
-2. You should see the `jobs` table with the sample data
-3. Test making a query using the SQL Editor:
-   ```sql
-   SELECT * FROM public.jobs;
-   ```
+```sql
+-- Index on job status for filtering
+CREATE INDEX idx_jobs_status ON jobs(status);
+
+-- Index on creation date for sorting
+CREATE INDEX idx_jobs_created_at ON jobs(created_at);
+
+-- Index on unique_id for deduplication
+CREATE INDEX idx_jobs_unique_id ON jobs(unique_id);
+```
+
+## Data Flow and Usage
+
+### Job Status Workflow
+
+Jobs progress through these status values:
+- `pending` - Newly added, not yet reviewed
+- `applied` - Application submitted
+- `interview` - Interview scheduled/completed
+- `rejected` - Application rejected
+- `offer` - Job offer received
+
+### JSON Fields
+
+Several fields store JSON data for flexibility:
+
+#### `preferences.preferred_locations`
+```json
+["Remote", "San Francisco, CA", "New York, NY"]
+```
+
+#### `preferences.tech_stack`
+```json
+["React", "TypeScript", "Node.js", "Python", "PostgreSQL"]
+```
+
+#### `jobs.top_matches`
+```json
+{
+  "skills": ["React", "TypeScript"],
+  "score": 0.85,
+  "missing": ["Python"]
+}
+```
+
+#### `jobs.detailed_analysis`
+```json
+{
+  "fit_score": 8.5,
+  "pros": ["Great tech stack", "Remote work"],
+  "cons": ["Lower salary"],
+  "recommendation": "Strong match"
+}
+```
+
+## Database Operations
+
+### Common Queries
+
+#### Get All Active Jobs
+```sql
+SELECT * FROM jobs 
+WHERE status IN ('pending', 'applied', 'interview') 
+ORDER BY created_at DESC;
+```
+
+#### Get Job Statistics
+```sql
+SELECT 
+  status, 
+  COUNT(*) as count 
+FROM jobs 
+GROUP BY status;
+```
+
+#### Find Jobs by Company
+```sql
+SELECT * FROM jobs 
+WHERE company LIKE '%TechCorp%' 
+ORDER BY created_at DESC;
+```
+
+#### Get User Preferences
+```sql
+SELECT * FROM preferences 
+ORDER BY created_at DESC 
+LIMIT 1;
+```
+
+### Data Validation
+
+The database uses constraints to ensure data integrity:
+- `NOT NULL` constraints on required fields
+- `DEFAULT` values for timestamps and status
+- `UNIQUE` constraint on `unique_id` for deduplication
+- Foreign key constraints (enabled with `PRAGMA foreign_keys = ON`)
+
+## Database Management
+
+### Backup and Restore
+
+#### Create Backup
+```bash
+# Simple file copy
+cp data/jobforge.db backups/jobforge-backup-$(date +%Y%m%d).db
+
+# Using SQLite command (if sqlite3 installed)
+sqlite3 data/jobforge.db ".backup backups/jobforge-backup-$(date +%Y%m%d).db"
+```
+
+#### Restore from Backup
+```bash
+# Stop the server first, then:
+cp backups/jobforge-backup-20240101.db data/jobforge.db
+```
+
+### Database Inspection
+
+#### Using DB Browser for SQLite
+1. Download [DB Browser for SQLite](https://sqlitebrowser.org/)
+2. Open `data/jobforge.db`
+3. Browse tables, run queries, and inspect data
+
+#### Using sqlite3 Command Line
+```bash
+# Open database
+sqlite3 data/jobforge.db
+
+# List tables
+.tables
+
+# Describe table structure
+.schema jobs
+
+# Run query
+SELECT COUNT(*) FROM jobs;
+
+# Exit
+.quit
+```
+
+### Database Reset
+
+To completely reset the database (⚠️ **This deletes all data!**):
+
+```bash
+# Stop the server
+# Delete the database file
+rm -f data/jobforge.db
+
+# Restart the server (creates fresh database)
+npm run server:dev
+```
+
+## Performance Characteristics
+
+### SQLite Benefits for This Use Case
+- **Fast read operations**: Sub-millisecond queries for typical datasets
+- **Efficient writes**: Batched inserts and updates
+- **Small footprint**: Minimal memory usage
+- **ACID compliance**: Reliable transaction handling
+- **Concurrent reads**: Multiple read operations simultaneously
+
+### Scalability Notes
+- SQLite easily handles thousands of job records
+- Performs well up to hundreds of thousands of records
+- Database file size remains manageable (typically <10MB for extensive job data)
+- For multi-user scenarios, migration to PostgreSQL would be straightforward
+
+## Security Considerations
+
+### Local-Only Security
+- Database file stored locally with filesystem permissions
+- No network access to database (only via Express API)
+- No user authentication system (designed for single-user use)
+- All data remains on local machine
+
+### Recommended Practices
+- Regular backups to prevent data loss
+- Appropriate file system permissions on `data/` directory
+- Consider encryption of backup files for sensitive data
+
+## Migration Support
+
+### From Supabase (Completed)
+The application was successfully migrated from Supabase PostgreSQL to SQLite:
+- ✅ Schema converted to SQLite format
+- ✅ Data types adapted (UUID → TEXT)
+- ✅ Constraints and indexes preserved
+- ✅ JSON handling maintained
+
+### Future Migration Options
+The database structure supports future migrations:
+- Export to SQL format for portability
+- JSON export/import for data exchange
+- Migration scripts for PostgreSQL if needed
 
 ## Troubleshooting
 
-1. **Migration Issues**: If you encounter errors during migration, try running the statements one by one to identify the problematic one
-2. **RLS Issues**: If you have trouble accessing data, make sure RLS is either disabled or properly configured
-3. **Foreign Key Constraints**: The original schema references `auth.users` - if you're getting errors, you may need to modify these references
-4. **UUID Generation**: If `gen_random_uuid()` function is not available, you might need to install the `pgcrypto` extension:
-   ```sql
-   CREATE EXTENSION IF NOT EXISTS pgcrypto;
+### Common Issues
+
+1. **Database locked error**
+   ```bash
+   # Stop all processes accessing the database
+   # Check for orphaned processes
+   ps aux | grep node
    ```
 
-## Next Steps
+2. **Permission denied**
+   ```bash
+   # Fix directory permissions
+   chmod 755 data/
+   chmod 644 data/jobforge.db
+   ```
 
-After setting up the database, you'll need to:
+3. **Corrupt database**
+   ```bash
+   # Check database integrity
+   sqlite3 data/jobforge.db "PRAGMA integrity_check;"
+   
+   # If corrupt, restore from backup
+   cp backups/latest-backup.db data/jobforge.db
+   ```
 
-1. Configure the frontend to connect to your local Supabase instance
-2. Test creating, reading, updating, and deleting jobs
-3. Verify all features work as expected 
+4. **Missing database file**
+   - The database is automatically created on server startup
+   - Ensure the server process has write permissions to the `data/` directory
+
+### Performance Issues
+- SQLite is optimized for this use case and should perform well
+- If experiencing slow queries, check if indexes are being used
+- Very large datasets (>100k records) may benefit from additional indexing
+
+## Development Notes
+
+### Adding New Tables
+1. Add table creation SQL to `server/database.ts`
+2. Add any required indexes
+3. Consider migration strategy for existing databases
+4. Update API routes as needed
+
+### Schema Changes
+- SQLite supports limited schema modifications
+- For major changes, consider migration scripts
+- Always backup before schema changes
+- Test changes thoroughly in development
+
+This SQLite setup provides a robust, performant, and maintainable database solution for JobForge AI's single-user job tracking needs. 

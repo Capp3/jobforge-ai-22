@@ -9,7 +9,12 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "serve": "http-server dist -p 8080"
+    "serve": "http-server dist -p 8080",
+    "server": "tsx server/server.ts",
+    "server:dev": "tsx watch server/server.ts",
+    "dev:full": "concurrently \"npm run server:dev\" \"npm run dev\"",
+    "build:server": "tsc server/server.ts --outDir dist/server --target es2020 --module commonjs --moduleResolution node --allowSyntheticDefaultImports",
+    "start:prod": "node dist/server/server.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

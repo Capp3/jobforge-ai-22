@@ -35,7 +35,7 @@ npm install
 
 2. **Start the development servers:**
 ```bash
-# Start both frontend and backend together
+# Start both frontend and backend together (recommended)
 npm run dev:full
 
 # Or start them separately:
@@ -107,12 +107,20 @@ The app is designed to integrate with:
 
 ### Available Scripts
 
+**Development:**
 - `npm run dev` - Start frontend only (port 5173)
 - `npm run server:dev` - Start backend only (port 3001)  
-- `npm run dev:full` - Start both frontend and backend
+- `npm run dev:full` - Start both frontend and backend concurrently
+
+**Production:**
 - `npm run build` - Build frontend for production
-- `npm run build:server` - Build backend for production
+- `npm run build:server` - Build backend TypeScript
 - `npm run start:prod` - Start production server
+- `npm run serve` - Serve built frontend with http-server (port 8080)
+
+**Development Tools:**
+- `npm run lint` - Run ESLint code quality checks
+- `npm run preview` - Preview production build locally
 
 ### Building for Production
 ```bash

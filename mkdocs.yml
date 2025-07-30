@@ -1,5 +1,5 @@
 site_name: JobForge AI Documentation
-site_description: Documentation for JobForge AI - A job application tracking system
+site_description: Documentation for JobForge AI - A local-first job application tracking system with SQLite
 site_author: JobForge AI Team
 site_url: https://jobforge-ai.github.io/jobforge-ai-22/
 
@@ -51,22 +51,17 @@ theme:
 nav:
   - Home: index.md
   - Getting Started:
-    - Setup Guide: setup-guide.md
     - Quick Start: quick-start.md
-  - Configuration:
-    - Frontend Setup: frontend-update-guide.md
-    - Database Setup: database-setup-guide.md
-  - Development:
+    - Setup Guide: setup-guide.md
+  - System Information:
     - Architecture: architecture.md
-    - Project Planning: planning.md
-    - Tasks: tasks.md
-  - Reference:
-    - Project Context: projectContext.md
-    - Active Context: activeContext.md
-    - Progress: progress.md
+    - Migration Status: migration-status.md
+    - Database Guide: database-setup-guide.md
+  - Development:
+    - Tasks & Roadmap: tasks.md
     - Project Brief: projectbrief.md
-    - Supabase Info: supabaseinfo.md
-  - Documentation:
+  - Meta-Documentation:
+    - Documentation Updates: documentation-update-summary.md
     - GitHub Pages Setup: github-pages-setup.md
 
 # Plugins
@@ -84,8 +79,6 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/jobforge-ai/jobforge-ai-22
-    - icon: fontawesome/brands/discord
-      link: https://discord.gg/supabase
 
 # Copyright
 copyright: Copyright &copy; 2024 JobForge AI Team

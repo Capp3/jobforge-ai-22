@@ -68,6 +68,12 @@ export interface UserPreferences {
   career_level: string[]        // junior, mid, senior
   tech_stack: string[]          // Technology preferences
   company_size: string[]        // startup, medium, large
+  
+  // LLM Configuration
+  ollama_endpoint?: string       // Ollama API endpoint URL
+  ollama_model?: string          // Selected Ollama model name
+  advanced_ai_model?: string     // Advanced AI model for detailed analysis
+  
   created_at: string
   updated_at: string
 }
@@ -135,7 +141,7 @@ export interface EmailDeliveryResult {
 }
 
 // Edge Function response types
-export interface EdgeFunctionResponse<T = any> {
+export interface EdgeFunctionResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string

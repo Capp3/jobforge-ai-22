@@ -82,14 +82,19 @@ export class JobService {
 
   // Create a new job (manual entry)
   static async createJob(job: JobCreate) {
+    const insertData = {
+      ...job,
+      status: 'pending', // Manual entries start as pending
+      emailed: false,
+      unique_id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Cast complex types to Json for Supabase
+      detailed_analysis: job.detailed_analysis ? JSON.parse(JSON.stringify(job.detailed_analysis)) : null,
+      top_matches: job.top_matches ? JSON.parse(JSON.stringify(job.top_matches)) : null
+    }
+
     const { data, error } = await supabase
       .from(TABLE_NAMES.JOBS)
-      .insert({
-        ...job,
-        status: 'pending', // Manual entries start as pending
-        emailed: false,
-        unique_id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      })
+      .insert(insertData)
       .select()
       .single()
 
@@ -102,12 +107,17 @@ export class JobService {
 
   // Update a job (user actions like apply, reject, etc.)
   static async updateJob(id: string, updates: JobUpdate) {
+    const updateData = {
+      ...updates,
+      updated_at: new Date().toISOString(),
+      // Cast complex types to Json for Supabase
+      detailed_analysis: updates.detailed_analysis ? JSON.parse(JSON.stringify(updates.detailed_analysis)) : undefined,
+      top_matches: updates.top_matches ? JSON.parse(JSON.stringify(updates.top_matches)) : undefined
+    }
+
     const { data, error } = await supabase
       .from(TABLE_NAMES.JOBS)
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single()
@@ -159,10 +169,18 @@ export class JobService {
   }
 
   // Get processing statistics
-  // TODO: Update types to include processing_stats table
   static async getProcessingStats(days = 7): Promise<ProcessingStats[]> {
-    // Placeholder implementation until types are updated
-    return []
+    const { data, error } = await supabase
+      .from('processing_stats')
+      .select('*')
+      .order('run_date', { ascending: false })
+      .limit(days)
+
+    if (error) {
+      throw new Error(`Failed to fetch processing stats: ${error.message}`)
+    }
+
+    return data as ProcessingStats[]
   }
 
   // Get job counts by status

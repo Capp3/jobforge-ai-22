@@ -40,7 +40,8 @@ import {
   RotateCcw,
   Download,
   Upload,
-  CheckCircle
+  CheckCircle,
+  Activity
 } from 'lucide-react'
 import { UserPreferences, PreferencesCreate } from '@/types/algorithm'
 import { PreferencesService } from '@/services/preferencesService'
@@ -68,6 +69,13 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [currentPreferences, setCurrentPreferences] = useState<UserPreferences | null>(null)
+  
+  // LLM Configuration state
+  const [ollamaEndpoint, setOllamaEndpoint] = useState('http://localhost:11434')
+  const [ollamaModel, setOllamaModel] = useState('')
+  const [advancedAiModel, setAdvancedAiModel] = useState('gpt-4')
+  const [availableModels, setAvailableModels] = useState<string[]>([])
+  const [isTestingConnection, setIsTestingConnection] = useState(false)
 
   // Get preference options
   const options = PreferencesService.getPreferenceOptions()
@@ -254,6 +262,35 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
     const current = form.getValues('tech_stack')
     if (!current.includes(tech)) {
       appendTech(tech)
+    }
+  }
+
+  // Fetch available Ollama models
+  const fetchOllamaModels = async () => {
+    setIsTestingConnection(true)
+    try {
+      const response = await fetch(`${ollamaEndpoint}/api/tags`)
+      if (response.ok) {
+        const data = await response.json()
+        const models = data.models?.map((model: { name: string }) => model.name) || []
+        setAvailableModels(models)
+        toast({
+          title: 'Connection Successful',
+          description: `Found ${models.length} available models`,
+        })
+      } else {
+        throw new Error('Failed to connect to Ollama')
+      }
+    } catch (error) {
+      console.error('Failed to fetch Ollama models:', error)
+      toast({
+        title: 'Connection Failed',
+        description: 'Could not connect to Ollama. Check the endpoint URL.',
+        variant: 'destructive',
+      })
+      setAvailableModels([])
+    } finally {
+      setIsTestingConnection(false)
     }
   }
 
@@ -555,6 +592,148 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
                   </FormItem>
                 )}
               />
+
+              {/* LLM Configuration */}
+              <div className="space-y-4 border-t pt-6">
+                <div>
+                  <h3 className="text-lg font-medium">AI Model Configuration</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Configure the AI models used for job filtering and analysis
+                  </p>
+                </div>
+
+                {/* Ollama Configuration */}
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Ollama Endpoint */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Ollama Endpoint</label>
+                      <Input
+                        value={ollamaEndpoint}
+                        onChange={(e) => setOllamaEndpoint(e.target.value)}
+                        placeholder="http://localhost:11434"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        URL for your Ollama instance
+                      </p>
+                    </div>
+
+                    {/* Test Connection */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Test Connection</label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={fetchOllamaModels}
+                        disabled={isTestingConnection || !ollamaEndpoint}
+                        className="w-full"
+                      >
+                        {isTestingConnection ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                            Testing...
+                          </>
+                        ) : (
+                          <>
+                            <Activity className="w-4 h-4 mr-2" />
+                            Test & Fetch Models
+                          </>
+                        )}
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        Test connection and load available models
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Ollama Model Selection */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Ollama Model</label>
+                    <div className="flex gap-2">
+                      {availableModels.length > 0 ? (
+                        <Select value={ollamaModel} onValueChange={setOllamaModel}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Select a model..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableModels.map((model) => (
+                              <SelectItem key={model} value={model}>
+                                {model}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Input
+                          value={ollamaModel}
+                          onChange={(e) => setOllamaModel(e.target.value)}
+                          placeholder="Enter model name (e.g., llama2, mistral)"
+                          className="flex-1"
+                        />
+                      )}
+                      {availableModels.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setAvailableModels([])}
+                          title="Switch to manual input"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {availableModels.length > 0
+                        ? `Choose from ${availableModels.length} available models`
+                        : 'Manually enter model name or test connection to load available models'
+                      }
+                    </p>
+                  </div>
+
+                  {/* Advanced AI Model */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Advanced AI Model</label>
+                    <Select value={advancedAiModel} onValueChange={setAdvancedAiModel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select advanced AI model..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4">GPT-4</SelectItem>
+                        <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                        <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                        <SelectItem value="claude-3-opus">Claude 3 Opus</SelectItem>
+                        <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                        <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Model used for detailed job analysis and reasoning
+                    </p>
+                  </div>
+
+                  {/* Model Status */}
+                  {(ollamaModel || advancedAiModel) && (
+                    <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                      <h4 className="text-sm font-medium">Current Configuration</h4>
+                      <div className="text-xs space-y-1">
+                        <div>
+                          <span className="font-medium">Initial Filtering:</span>{' '}
+                          {ollamaModel || 'Not configured'}
+                        </div>
+                        <div>
+                          <span className="font-medium">Detailed Analysis:</span>{' '}
+                          {advancedAiModel}
+                        </div>
+                        <div>
+                          <span className="font-medium">Endpoint:</span>{' '}
+                          {ollamaEndpoint}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               {/* Action Buttons */}
               {showActions && (

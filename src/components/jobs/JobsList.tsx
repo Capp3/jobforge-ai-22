@@ -97,7 +97,38 @@ export function JobsList({ defaultView = 'approved', showControls = true }: Jobs
 
   // Filter and sort jobs
   const filteredAndSortedJobs = useMemo(() => {
-    let jobs = getCurrentJobs()
+    // Get current jobs based on selected status
+    let jobs: Job[] = []
+    switch (selectedStatus) {
+      case 'approved':
+        jobs = approvedJobs.data || []
+        break
+      case 'new':
+        jobs = newJobs.data || []
+        break
+      case 'filtered_out':
+        jobs = filteredJobs.data || []
+        break
+      case 'emailed':
+        jobs = emailedJobs.data || []
+        break
+      case 'applied':
+        jobs = appliedJobs.data || []
+        break
+      case 'needs_review':
+        jobs = needsReviewJobs.data || []
+        break
+      case 'all':
+        // Combine all jobs (would need a separate query in real implementation)
+        jobs = [
+          ...(approvedJobs.data || []),
+          ...(newJobs.data || []),
+          ...(filteredJobs.data || [])
+        ]
+        break
+      default:
+        jobs = approvedJobs.data || []
+    }
 
     // Apply search filter
     if (searchTerm) {
@@ -130,7 +161,17 @@ export function JobsList({ defaultView = 'approved', showControls = true }: Jobs
     })
 
     return jobs
-  }, [getCurrentJobs(), searchTerm, sortBy])
+  }, [
+    selectedStatus,
+    approvedJobs.data,
+    newJobs.data,
+    filteredJobs.data,
+    emailedJobs.data,
+    appliedJobs.data,
+    needsReviewJobs.data,
+    searchTerm,
+    sortBy
+  ])
 
   // Get loading state
   const isLoading = useMemo(() => {

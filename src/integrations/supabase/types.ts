@@ -33,6 +33,16 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string | null
+          
+          // Algorithm enhancement fields
+          unique_id: string | null
+          rating: string | null
+          reasoning: string | null
+          top_matches: Json | null
+          detailed_analysis: Json | null
+          emailed: boolean
+          processing_error: string | null
+          published_date: string | null
         }
         Insert: {
           ai_notes?: string | null
@@ -52,6 +62,16 @@ export type Database = {
           title: string
           updated_at?: string
           user_id?: string | null
+          
+          // Algorithm enhancement fields
+          unique_id?: string | null
+          rating?: string | null
+          reasoning?: string | null
+          top_matches?: Json | null
+          detailed_analysis?: Json | null
+          emailed?: boolean
+          processing_error?: string | null
+          published_date?: string | null
         }
         Update: {
           ai_notes?: string | null
@@ -71,6 +91,144 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string | null
+          
+          // Algorithm enhancement fields
+          unique_id?: string | null
+          rating?: string | null
+          reasoning?: string | null
+          top_matches?: Json | null
+          detailed_analysis?: Json | null
+          emailed?: boolean
+          processing_error?: string | null
+          published_date?: string | null
+        }
+        Relationships: []
+      }
+      preferences: {
+        Row: {
+          id: string
+          user_id: string | null
+          preferred_locations: string[] | null
+          work_mode: string[] | null
+          travel_willingness: string | null
+          salary_range: string | null
+          career_level: string[] | null
+          tech_stack: string[] | null
+          company_size: string[] | null
+          ollama_endpoint: string | null
+          ollama_model: string | null
+          advanced_ai_model: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          preferred_locations?: string[] | null
+          work_mode?: string[] | null
+          travel_willingness?: string | null
+          salary_range?: string | null
+          career_level?: string[] | null
+          tech_stack?: string[] | null
+          company_size?: string[] | null
+          ollama_endpoint?: string | null
+          ollama_model?: string | null
+          advanced_ai_model?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          preferred_locations?: string[] | null
+          work_mode?: string[] | null
+          travel_willingness?: string | null
+          salary_range?: string | null
+          career_level?: string[] | null
+          tech_stack?: string[] | null
+          company_size?: string[] | null
+          ollama_endpoint?: string | null
+          ollama_model?: string | null
+          advanced_ai_model?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      processing_stats: {
+        Row: {
+          id: string
+          run_date: string | null
+          total_jobs_processed: number | null
+          jobs_approved: number | null
+          jobs_filtered: number | null
+          jobs_emailed: number | null
+          processing_time_seconds: number | null
+          errors_count: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          run_date?: string | null
+          total_jobs_processed?: number | null
+          jobs_approved?: number | null
+          jobs_filtered?: number | null
+          jobs_emailed?: number | null
+          processing_time_seconds?: number | null
+          errors_count?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          run_date?: string | null
+          total_jobs_processed?: number | null
+          jobs_approved?: number | null
+          jobs_filtered?: number | null
+          jobs_emailed?: number | null
+          processing_time_seconds?: number | null
+          errors_count?: number | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      rss_feeds: {
+        Row: {
+          id: string
+          url: string
+          name: string
+          active: boolean | null
+          last_processed: string | null
+          processing_error: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          url: string
+          name: string
+          active?: boolean | null
+          last_processed?: string | null
+          processing_error?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          url?: string
+          name?: string
+          active?: boolean | null
+          last_processed?: string | null
+          processing_error?: string | null
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

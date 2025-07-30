@@ -30,29 +30,29 @@ export default function Jobs() {
   const { toast } = useToast();
 
   useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('jobs')
+          .select('*')
+          .order('date_processed', { ascending: false });
+
+        if (error) throw error;
+        setJobs(data || []);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch jobs from database",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchJobs();
-  }, []);
-
-  const fetchJobs = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .order('date_processed', { ascending: false });
-
-      if (error) throw error;
-      setJobs(data || []);
-    } catch (error) {
-      console.error('Error fetching jobs:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch jobs from database",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [toast]);
 
   const getStatusColor = (status: string) => {
     switch (status) {

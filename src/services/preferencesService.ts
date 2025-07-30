@@ -6,53 +6,61 @@ import {
   PreferencesCreate, 
   PreferencesUpdate 
 } from '@/types/algorithm'
+import { supabase } from '@/integrations/supabase/client'
 
 export class PreferencesService {
   
-  // Get user preferences (placeholder implementation)
-  // TODO: Implement with actual Supabase calls once types are updated
-  static async getUserPreferences(): Promise<UserPreferences | null> {
-    // Return default preferences for now
-    return {
-      id: 'default-preferences',
-      user_id: 'default-user',
-      preferred_locations: ['Belfast', 'Northern Ireland', 'UK', 'Remote'],
-      work_mode: ['hybrid', 'remote', 'onsite'],
-      travel_willingness: 'limited',
-      salary_range: '40000-80000',
-      career_level: ['senior', 'mid'],
-      tech_stack: ['broadcast', 'media', 'production', 'networking', 'AV', 'IP'],
-      company_size: ['startup', 'medium', 'large'],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+  // Get user preferences
+  static async getUserPreferences(userId?: string): Promise<UserPreferences | null> {
+    const { data, error } = await supabase
+      .from('preferences')
+      .select('*')
+      .eq('user_id', userId || 'default-user')
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No preferences found, return null
+        return null
+      }
+      throw new Error(`Failed to fetch preferences: ${error.message}`)
     }
+
+    return data as UserPreferences
   }
 
-  // Create new user preferences (placeholder)
+  // Create new user preferences
   static async createUserPreferences(preferences: PreferencesCreate): Promise<UserPreferences> {
-    // TODO: Implement with actual Supabase calls
-    return {
-      id: crypto.randomUUID(),
-      user_id: crypto.randomUUID(),
-      ...preferences,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    const { data, error } = await supabase
+      .from('preferences')
+      .insert(preferences)
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Failed to create preferences: ${error.message}`)
     }
+
+    return data as UserPreferences
   }
 
-  // Update user preferences (placeholder)
+  // Update user preferences
   static async updateUserPreferences(id: string, updates: PreferencesUpdate): Promise<UserPreferences> {
-    // TODO: Implement with actual Supabase calls
-    const current = await this.getUserPreferences()
-    if (!current) {
-      throw new Error('No preferences found to update')
+    const { data, error } = await supabase
+      .from('preferences')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Failed to update preferences: ${error.message}`)
     }
-    
-    return {
-      ...current,
-      ...updates,
-      updated_at: new Date().toISOString()
-    }
+
+    return data as UserPreferences
   }
 
   // Get or create default preferences

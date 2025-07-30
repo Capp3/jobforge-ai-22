@@ -40,6 +40,7 @@ Get started in under 5 minutes:
 - **[Architecture](architecture.md)** - System design and technical decisions
 - **[Migration Status](migration-status.md)** - Complete migration report from Supabase to SQLite
 - **[Database Setup](database-setup-guide.md)** - SQLite schema and management
+- **[Job Hunting Journey](job-hunting-journey.md)** - Complete process flow from n8n concept to current implementation
 
 ### Development
 - **[Tasks](tasks.md)** - Current roadmap and future enhancements
@@ -90,13 +91,17 @@ If you encounter any issues:
 2. Review the **[Setup Guide](setup-guide.md)** troubleshooting section
 4. Open an issue on the GitHub repository
 
-## Future Enhancements
+## Current Development Focus
 
-The current architecture supports planned features:
-- **AI Integration**: Local Ollama integration for job analysis
-- **RSS Automation**: Automated job feed processing
-- **Email Alerts**: Job notification system
-- **Analytics**: Job market insights and trends
+We're currently implementing these core functionality areas:
+
+1. **Application Logic Flow**: Creating a seamless job hunting workflow
+2. **LLM Integration**: Adding AI-powered job analysis and matching
+3. **Dashboard Implementation**: Enhancing the user interface
+4. **RSS Feed Integration**: Automating job discovery
+5. **Email Notification System**: Keeping users informed
+
+See the [Tasks](tasks.md) page for the detailed implementation plan.
 
 ---
 

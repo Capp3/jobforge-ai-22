@@ -162,15 +162,17 @@ The SQLite database includes these tables:
 - Check backend logs in the terminal
 - SQLite database can be inspected with DB Browser for SQLite
 
-## Future Enhancements
+## Current Development Focus
 
-This is a simplified version. Future features could include:
+We're actively implementing these core functionality areas:
 
-1. **RSS Processing**: Automatically fetch jobs from RSS feeds
-2. **AI Integration**: Smart job filtering with Ollama/OpenAI
-3. **Email Notifications**: Automated job alerts
-4. **Analytics**: Job market insights and trends
-5. **Import/Export**: Backup and restore functionality
+1. **Application Logic Flow**: Creating a complete job hunting workflow
+2. **LLM Integration**: Adding AI-powered job analysis and matching
+3. **Dashboard Implementation**: Enhancing the user interface
+4. **RSS Feed Integration**: Automating job discovery
+5. **Email Notification System**: Keeping users informed
+
+See the [docs/tasks.md](docs/tasks.md) file for the detailed implementation plan.
 
 ## Migration from Supabase
 

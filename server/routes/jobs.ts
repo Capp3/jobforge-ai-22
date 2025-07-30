@@ -3,6 +3,24 @@ import { Router } from 'express';
 import { db, generateId } from '../database.js';
 import type { Job, JobCreate, JobUpdate, JobStatus } from '../../src/types/algorithm.js';
 
+// Database row types (matches SQLite schema)
+interface JobRow {
+  id: string;
+  title: string;
+  company: string;
+  status: string;
+  url?: string;
+  description?: string;
+  location?: string;
+  date_applied?: string;
+  follow_up_date?: string;
+  notes?: string;
+  top_matches?: string; // JSON string
+  detailed_analysis?: string; // JSON string
+  emailed?: number; // SQLite boolean (0/1)
+  date_processed?: string;
+}
+
 const router = Router();
 
 // Get all jobs with optional filtering
@@ -11,8 +29,8 @@ router.get('/', (req, res) => {
     const { status, limit, offset, search } = req.query;
     
     let query = 'SELECT * FROM jobs';
-    let params: any[] = [];
-    let conditions: string[] = [];
+    const params: unknown[] = [];
+    const conditions: string[] = [];
 
     // Add status filter
     if (status) {
@@ -48,7 +66,7 @@ router.get('/', (req, res) => {
     }
 
     const stmt = db.prepare(query);
-    const jobs = stmt.all(...params);
+    const jobs = stmt.all(...params) as JobRow[];
 
     // Parse JSON fields
     const processedJobs = jobs.map(job => ({
@@ -69,7 +87,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   try {
     const stmt = db.prepare('SELECT * FROM jobs WHERE id = ?');
-    const job = stmt.get(req.params.id);
+    const job = stmt.get(req.params.id) as JobRow | undefined;
     
     if (!job) {
       return res.status(404).json({ error: 'Job not found' });
@@ -133,7 +151,7 @@ router.post('/', (req, res) => {
     );
 
     // Fetch the created job
-    const createdJob = db.prepare('SELECT * FROM jobs WHERE id = ?').get(id);
+    const createdJob = db.prepare('SELECT * FROM jobs WHERE id = ?').get(id) as JobRow;
     const processedJob = {
       ...createdJob,
       top_matches: createdJob.top_matches ? JSON.parse(createdJob.top_matches) : null,
@@ -187,7 +205,7 @@ router.put('/:id', (req, res) => {
     }
 
     // Fetch the updated job
-    const updatedJob = db.prepare('SELECT * FROM jobs WHERE id = ?').get(id);
+    const updatedJob = db.prepare('SELECT * FROM jobs WHERE id = ?').get(id) as JobRow;
     const processedJob = {
       ...updatedJob,
       top_matches: updatedJob.top_matches ? JSON.parse(updatedJob.top_matches) : null,
@@ -223,9 +241,9 @@ router.delete('/:id', (req, res) => {
 router.get('/stats/status-counts', (req, res) => {
   try {
     const stmt = db.prepare('SELECT status, COUNT(*) as count FROM jobs GROUP BY status');
-    const results = stmt.all();
+    const results = stmt.all() as { status: string; count: number }[];
     
-    const counts = results.reduce((acc: Record<string, number>, row: any) => {
+    const counts = results.reduce((acc: Record<string, number>, row: { status: string; count: number }) => {
       acc[row.status] = row.count;
       return acc;
     }, {});

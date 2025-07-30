@@ -50,7 +50,8 @@ jobs:
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             VERSION=${GITHUB_REF#refs/tags/}
           else
-            VERSION="manual-${{ github.sha::8 }}"
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-8)
+            VERSION="manual-$SHORT_SHA"
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Version: $VERSION"

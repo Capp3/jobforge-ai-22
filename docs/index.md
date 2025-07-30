@@ -67,7 +67,7 @@ Get started in under 5 minutes:
 
 - **Node.js 18+** and npm
 - **5 minutes** for complete setup
-- **Basic terminal knowledge** (optional but helpful)
+- **Basic terminal knowledge**
 
 ## Quick Commands
 
@@ -82,23 +82,12 @@ npm run dev:full
 npm run build
 ```
 
-## Migration Success
-
-JobForge AI has been successfully migrated from Supabase Cloud to a local SQLite architecture:
-
-- ✅ **100% Feature Parity**: All functionality maintained
-- ✅ **10-50x Performance Improvement**: Local database access
-- ✅ **Complete Data Ownership**: No cloud storage
-- ✅ **Simplified Setup**: From 30+ minutes to under 5 minutes
-- ✅ **Enhanced Privacy**: All data stays local
-
 ## Support
 
 If you encounter any issues:
 
 1. Check the **[Quick Start Guide](quick-start.md)** for common setup issues
 2. Review the **[Setup Guide](setup-guide.md)** troubleshooting section
-3. Check the **[Migration Status](migration-status.md)** for technical details
 4. Open an issue on the GitHub repository
 
 ## Future Enhancements

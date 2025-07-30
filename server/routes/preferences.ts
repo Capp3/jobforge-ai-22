@@ -3,13 +3,25 @@ import { Router } from 'express';
 import { db, generateId } from '../database.js';
 import type { UserPreferences, PreferencesCreate, PreferencesUpdate } from '../../src/types/algorithm.js';
 
+// Database row types (matches SQLite schema)
+interface PreferencesRow {
+  id: string;
+  preferred_locations: string; // JSON string
+  work_mode: string; // JSON string
+  career_level: string; // JSON string
+  tech_stack: string; // JSON string
+  company_size: string; // JSON string
+  created_at: string;
+  updated_at: string;
+}
+
 const router = Router();
 
 // Get user preferences (simplified for single-user)
 router.get('/', (req, res) => {
   try {
     const stmt = db.prepare('SELECT * FROM preferences ORDER BY created_at DESC LIMIT 1');
-    const preferences = stmt.get();
+    const preferences = stmt.get() as PreferencesRow | undefined;
     
     if (!preferences) {
       return res.status(404).json({ error: 'No preferences found' });
@@ -64,7 +76,7 @@ router.post('/', (req, res) => {
     );
 
     // Fetch the created preferences
-    const createdPreferences = db.prepare('SELECT * FROM preferences WHERE id = ?').get(id);
+    const createdPreferences = db.prepare('SELECT * FROM preferences WHERE id = ?').get(id) as PreferencesRow;
     const processedPreferences = {
       ...createdPreferences,
       preferred_locations: JSON.parse(createdPreferences.preferred_locations),
@@ -117,7 +129,7 @@ router.put('/:id', (req, res) => {
     }
 
     // Fetch the updated preferences
-    const updatedPreferences = db.prepare('SELECT * FROM preferences WHERE id = ?').get(id);
+    const updatedPreferences = db.prepare('SELECT * FROM preferences WHERE id = ?').get(id) as PreferencesRow;
     const processedPreferences = {
       ...updatedPreferences,
       preferred_locations: JSON.parse(updatedPreferences.preferred_locations),
@@ -139,7 +151,7 @@ router.post('/defaults', (req, res) => {
   try {
     // Check if preferences exist
     const existingStmt = db.prepare('SELECT * FROM preferences ORDER BY created_at DESC LIMIT 1');
-    let preferences = existingStmt.get();
+    let preferences = existingStmt.get() as PreferencesRow | undefined;
     
     if (!preferences) {
       // Create default preferences
@@ -176,7 +188,7 @@ router.post('/defaults', (req, res) => {
         now
       );
 
-      preferences = db.prepare('SELECT * FROM preferences WHERE id = ?').get(id);
+      preferences = db.prepare('SELECT * FROM preferences WHERE id = ?').get(id) as PreferencesRow;
     }
 
     // Parse JSON fields

@@ -6,81 +6,51 @@ import {
   PreferencesCreate, 
   PreferencesUpdate 
 } from '@/types/algorithm'
-import { supabase } from '@/integrations/supabase/client'
+import { apiClient } from './apiClient'
 
 export class PreferencesService {
   
-  // Get user preferences
+  // Get user preferences (simplified for single-user)
   static async getUserPreferences(userId?: string): Promise<UserPreferences | null> {
-    const { data, error } = await supabase
-      .from('preferences')
-      .select('*')
-      .eq('user_id', userId || 'default-user')
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No preferences found, return null
+    try {
+      const data = await apiClient.getPreferences()
+      return data as UserPreferences
+    } catch (error) {
+      if (error.message.includes('404') || error.message.includes('No preferences found')) {
         return null
       }
       throw new Error(`Failed to fetch preferences: ${error.message}`)
     }
-
-    return data as UserPreferences
   }
 
   // Create new user preferences
   static async createUserPreferences(preferences: PreferencesCreate): Promise<UserPreferences> {
-    const { data, error } = await supabase
-      .from('preferences')
-      .insert(preferences)
-      .select()
-      .single()
-
-    if (error) {
+    try {
+      const data = await apiClient.createPreferences(preferences)
+      return data as UserPreferences
+    } catch (error) {
       throw new Error(`Failed to create preferences: ${error.message}`)
     }
-
-    return data as UserPreferences
   }
 
   // Update user preferences
   static async updateUserPreferences(id: string, updates: PreferencesUpdate): Promise<UserPreferences> {
-    const { data, error } = await supabase
-      .from('preferences')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) {
+    try {
+      const data = await apiClient.updatePreferences(id, updates)
+      return data as UserPreferences
+    } catch (error) {
       throw new Error(`Failed to update preferences: ${error.message}`)
     }
-
-    return data as UserPreferences
   }
 
   // Get or create default preferences
   static async getOrCreateDefaults(): Promise<UserPreferences> {
-    let preferences = await this.getUserPreferences()
-    
-    if (!preferences) {
-      // Create default preferences
-      preferences = await this.createUserPreferences({
-        preferred_locations: ['Belfast', 'Northern Ireland', 'UK', 'Remote'],
-        work_mode: ['hybrid', 'remote', 'onsite'],
-        travel_willingness: 'limited',
-        salary_range: '40000-80000',
-        career_level: ['senior', 'mid'],
-        tech_stack: ['broadcast', 'media', 'production', 'networking', 'AV', 'IP'],
-        company_size: ['startup', 'medium', 'large']
-      })
+    try {
+      const data = await apiClient.getOrCreateDefaults()
+      return data as UserPreferences
+    } catch (error) {
+      throw new Error(`Failed to get or create default preferences: ${error.message}`)
     }
-
-    return preferences
   }
 
   // Validate preferences data

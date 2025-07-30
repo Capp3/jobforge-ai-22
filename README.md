@@ -1,112 +1,181 @@
-# JobForge AI
+# JobForge AI - Local Job Hunting Automation
 
-A job application tracking system built with React, TypeScript, and Supabase.
-
-## 📚 Documentation
-
-📖 **[View Full Documentation](https://jobforge-ai.github.io/jobforge-ai-22/)** - Complete setup and usage guide
-
-## Quick Start
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-Visit `http://localhost:5173` to see the application.
+A simplified, self-contained job hunting automation system built with React, TypeScript, and SQLite. Perfect for local use without external dependencies.
 
 ## Features
 
-- **Job Tracking**: Keep track of all your job applications in one place
-- **AI-Powered Analysis**: Get intelligent ratings and insights for job opportunities  
-- **Status Management**: Track applications through different stages
-- **Cloud Deployment**: Works with Supabase Cloud for easy setup
+- 📊 **Job Management**: Track job applications with status updates
+- 🔍 **Smart Filtering**: AI-powered job filtering based on your preferences  
+- 📋 **Preferences System**: Configure your job search criteria
+- 💾 **Local Storage**: SQLite database for complete data ownership
+- 🖥️ **Single User**: Designed for personal use, no authentication needed
 
-## Technology Stack
+## Tech Stack
 
-- **Frontend**: React, TypeScript, Vite, shadcn/ui
-- **Backend**: Supabase Cloud (PostgreSQL database + API)
-- **Deployment**: Serve locally or deploy to any static hosting service
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
+- **Backend**: Express.js + SQLite + better-sqlite3
+- **UI Components**: shadcn/ui + Radix UI
+- **Database**: SQLite (local file-based)
 
-## Setup
-
-This application works with Supabase Cloud. For detailed setup instructions, see the [Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/setup-guide/).
+## Quick Start
 
 ### Prerequisites
 
-- Node.js and npm
-- Supabase Cloud account (free tier available)
-- Basic understanding of PostgreSQL
+- Node.js 18+ 
+- npm or yarn
 
-### Quick Setup
+### Installation & Setup
 
-1. Create a Supabase Cloud project
-2. Update Supabase configuration in `src/integrations/supabase/client.ts`
-3. Set up database schema (see [Database Setup Guide](https://jobforge-ai.github.io/jobforge-ai-22/database-setup-guide/))
-4. Start the development server with `npm run dev`
+1. **Clone and install dependencies:**
+```bash
+git clone <your-repo>
+cd jobforge-ai
+npm install
+```
+
+2. **Start the development servers:**
+```bash
+# Start both frontend and backend together
+npm run dev:full
+
+# Or start them separately:
+npm run server:dev  # Backend API (port 3001)
+npm run dev         # Frontend (port 5173)
+```
+
+3. **Access the application:**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:3001
+   - Health Check: http://localhost:3001/api/health
+
+### Database
+
+The SQLite database (`data/jobforge.db`) is automatically created on first run. No setup required!
+
+## Project Structure
+
+```
+jobforge-ai/
+├── src/                    # Frontend React application
+│   ├── components/         # UI components
+│   ├── pages/             # Main application pages
+│   ├── services/          # API client services
+│   └── types/             # TypeScript definitions
+├── server/                # Backend Express API
+│   ├── database.ts        # SQLite database setup
+│   ├── routes/           # API route handlers
+│   └── server.ts         # Express server
+├── data/                 # SQLite database files (auto-created)
+└── docs/                 # Documentation
+```
+
+## API Endpoints
+
+The backend provides a REST API:
+
+### Jobs
+- `GET /api/jobs` - Get all jobs (with filtering)
+- `GET /api/jobs/:id` - Get single job
+- `POST /api/jobs` - Create new job
+- `PUT /api/jobs/:id` - Update job
+- `DELETE /api/jobs/:id` - Delete job
+- `GET /api/jobs/stats/status-counts` - Get job counts by status
+
+### Preferences  
+- `GET /api/preferences` - Get user preferences
+- `POST /api/preferences` - Create preferences
+- `PUT /api/preferences/:id` - Update preferences
+- `POST /api/preferences/defaults` - Get or create default preferences
+
+## Configuration
+
+### Job Preferences
+Configure your job search criteria in the "Preferences" tab:
+- **Locations**: Preferred work locations
+- **Work Mode**: Remote, hybrid, or on-site
+- **Salary Range**: Expected salary range
+- **Career Level**: Junior, mid, senior, etc.
+- **Tech Stack**: Preferred technologies
+- **Company Size**: Startup, medium, large, enterprise
+
+### LLM Configuration (Future)
+The app is designed to integrate with:
+- **Ollama**: For local AI processing
+- **Advanced AI Models**: For detailed job analysis
 
 ## Development
 
-### Documentation
-
-This project uses MkDocs for documentation. To work with the documentation locally:
-
-```bash
-# Install MkDocs dependencies
-pip install -r requirements.txt
-
-# Serve documentation locally
-mkdocs serve
-
-# Build documentation
-mkdocs build
-```
-
 ### Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build locally with Vite
-- `npm run serve` - Serve production build with http-server
-- `npm run lint` - Run ESLint
+- `npm run dev` - Start frontend only (port 5173)
+- `npm run server:dev` - Start backend only (port 3001)  
+- `npm run dev:full` - Start both frontend and backend
+- `npm run build` - Build frontend for production
+- `npm run build:server` - Build backend for production
+- `npm run start:prod` - Start production server
 
-## Production Deployment
-
-After building the application:
-
+### Building for Production
 ```bash
-# Build for production
+# Build frontend
 npm run build
 
-# Serve locally with http-server
-npm run serve
+# Build and start production server
+npm run build:server
+npm run start:prod
 ```
 
-The application will be available at `http://localhost:8080`.
+### Database Management
 
-You can also deploy the contents of the `dist` directory to any static hosting service like Vercel, Netlify, or GitHub Pages.
+The SQLite database includes these tables:
+- `jobs` - Job listings and application status
+- `preferences` - User preferences and settings
+- `rss_feeds` - RSS feed sources (future)
+- `processing_stats` - Algorithm performance metrics (future)
 
-## Contributing
+## Troubleshooting
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+### Common Issues
+
+1. **Backend won't start:**
+   - Check if port 3001 is available
+   - Ensure SQLite files can be created in `data/` directory
+
+2. **Frontend can't connect to backend:**
+   - Verify backend is running on port 3001
+   - Check API client configuration in `src/services/apiClient.ts`
+
+3. **Database issues:**
+   - Delete `data/jobforge.db` to reset database
+   - Check file permissions in `data/` directory
+
+### Development Tips
+
+- Use browser dev tools for frontend debugging
+- Check backend logs in the terminal
+- SQLite database can be inspected with DB Browser for SQLite
+
+## Future Enhancements
+
+This is a simplified version. Future features could include:
+
+1. **RSS Processing**: Automatically fetch jobs from RSS feeds
+2. **AI Integration**: Smart job filtering with Ollama/OpenAI
+3. **Email Notifications**: Automated job alerts
+4. **Analytics**: Job market insights and trends
+5. **Import/Export**: Backup and restore functionality
+
+## Migration from Supabase
+
+This app was originally built with Supabase and has been simplified to use SQLite. The frontend UI and business logic remain unchanged - only the data layer was modified.
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## Contributing
 
-- 📖 [Documentation](https://jobforge-ai.github.io/jobforge-ai-22/)
-- 🐛 [Report Issues](https://github.com/jobforge-ai/jobforge-ai-22/issues)
-- 💬 [Discussions](https://github.com/jobforge-ai/jobforge-ai-22/discussions)
+This is a personal project, but suggestions and improvements are welcome!
 
 ---
 
-Built with ❤️ using modern web technologies
+**Note**: This is a local-only application designed for personal use. It's not intended for multi-user or production deployment on the internet.

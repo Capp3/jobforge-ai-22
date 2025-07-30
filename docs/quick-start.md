@@ -26,7 +26,7 @@ npm run dev:full
 ```
 
 ### 3. Open and Use
-- **Frontend**: http://localhost:5173
+- **Frontend**: http://localhost:8080
 - **API Health Check**: http://localhost:3001/api/health
 
 That's it! The SQLite database is automatically created on first run.

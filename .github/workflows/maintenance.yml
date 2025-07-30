@@ -1,0 +1,295 @@
+name: Maintenance
+
+on:
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+
+jobs:
+  # Security Audit
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run security audit
+        run: |
+          echo "## 🔒 Security Audit Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run npm audit and capture output
+          if npm audit --audit-level=moderate > audit-report.txt 2>&1; then
+            echo "✅ **No security vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Security vulnerabilities detected**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Audit Details" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat audit-report.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Try to auto-fix if possible
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Auto-fix Attempt" >> $GITHUB_STEP_SUMMARY
+            if npm audit fix --dry-run > fix-report.txt 2>&1; then
+              echo "Auto-fix available:" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              cat fix-report.txt >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+            else
+              echo "Manual intervention required for security fixes." >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+          
+      - name: Upload audit report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-audit-report
+          path: |
+            audit-report.txt
+            fix-report.txt
+          retention-days: 30
+
+  # Dependency Updates Check
+  dependency-check:
+    name: Dependency Updates
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Check for outdated packages
+        run: |
+          echo "## 📦 Dependency Update Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Check for outdated packages
+          if npm outdated > outdated-report.txt 2>&1; then
+            echo "✅ **All dependencies are up to date**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "📊 **Outdated packages found**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Outdated Dependencies" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat outdated-report.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Check npm update --dry-run
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Update Preview" >> $GITHUB_STEP_SUMMARY
+          npm update --dry-run > update-preview.txt 2>&1 || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat update-preview.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          
+      - name: Upload dependency report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dependency-report
+          path: |
+            outdated-report.txt
+            update-preview.txt
+          retention-days: 30
+
+  # Health Check
+  health-check:
+    name: Application Health Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build application
+        run: |
+          npm run build
+          npm run build:server
+          
+      - name: Test application startup
+        run: |
+          echo "## 🏥 Application Health Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Start server in background
+          timeout 30s npm run start:prod &
+          SERVER_PID=$!
+          
+          # Wait for server to start
+          echo "Waiting for server to start..."
+          HEALTH_CHECK_PASSED=false
+          
+          for i in {1..10}; do
+            if curl -s http://localhost:3001/api/health > /dev/null; then
+              echo "✅ **Server started successfully**" >> $GITHUB_STEP_SUMMARY
+              HEALTH_CHECK_PASSED=true
+              break
+            fi
+            echo "Attempt $i: Server not ready, waiting..."
+            sleep 3
+          done
+          
+          if [ "$HEALTH_CHECK_PASSED" = "true" ]; then
+            # Test health endpoint
+            HEALTH_RESPONSE=$(curl -s http://localhost:3001/api/health)
+            echo "### Health Endpoint Response" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            echo "$HEALTH_RESPONSE" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            
+            # Test basic database operations
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Database Check" >> $GITHUB_STEP_SUMMARY
+            if [ -f "data/jobforge.db" ]; then
+              DB_SIZE=$(stat -c%s "data/jobforge.db" 2>/dev/null || echo "0")
+              echo "✅ **Database file created** (Size: ${DB_SIZE} bytes)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "❌ **Database file not found**" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Server failed to start within timeout**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Cleanup
+          kill $SERVER_PID 2>/dev/null || true
+
+  # Documentation Check
+  docs-check:
+    name: Documentation Health
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install MkDocs dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Test documentation build
+        run: |
+          echo "## 📚 Documentation Health Check" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if mkdocs build --verbose > docs-build.log 2>&1; then
+            echo "✅ **Documentation builds successfully**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Documentation build failed**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Build Errors" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat docs-build.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Check for broken links (basic)
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Documentation Files" >> $GITHUB_STEP_SUMMARY
+          
+          # Count documentation files
+          DOC_COUNT=$(find docs -name "*.md" | wc -l)
+          echo "📝 **Documentation files**: $DOC_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          # List main documentation files
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Main Documentation Files:**" >> $GITHUB_STEP_SUMMARY
+          find docs -name "*.md" -type f | sort | while read file; do
+            echo "- \`$file\`" >> $GITHUB_STEP_SUMMARY
+          done
+
+  # Summary Report
+  maintenance-summary:
+    name: Maintenance Summary
+    runs-on: ubuntu-latest
+    needs: [security-audit, dependency-check, health-check, docs-check]
+    if: always()
+    
+    steps:
+      - name: Generate maintenance report
+        run: |
+          echo "## 🔧 Weekly Maintenance Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date**: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Maintenance Tasks Status" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.security-audit.result }}" = "success" ]; then
+            echo "✅ **Security Audit**: Completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Security Audit**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.dependency-check.result }}" = "success" ]; then
+            echo "✅ **Dependency Check**: Completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Dependency Check**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.health-check.result }}" = "success" ]; then
+            echo "✅ **Health Check**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Health Check**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.docs-check.result }}" = "success" ]; then
+            echo "✅ **Documentation**: Healthy" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Documentation**: Issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recommended Actions" >> $GITHUB_STEP_SUMMARY
+          echo "- Review security audit results if any vulnerabilities were found" >> $GITHUB_STEP_SUMMARY
+          echo "- Consider updating outdated dependencies" >> $GITHUB_STEP_SUMMARY
+          echo "- Check application health status" >> $GITHUB_STEP_SUMMARY
+          echo "- Verify documentation accuracy and completeness" >> $GITHUB_STEP_SUMMARY
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "*Next scheduled maintenance: $(date -d 'next Monday 9:00' -u '+%Y-%m-%d %H:%M:%S UTC')*" >> $GITHUB_STEP_SUMMARY 

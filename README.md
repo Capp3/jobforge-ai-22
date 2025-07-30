@@ -40,11 +40,11 @@ npm run dev:full
 
 # Or start them separately:
 npm run server:dev  # Backend API (port 3001)
-npm run dev         # Frontend (port 5173)
+npm run dev         # Frontend (port 8080)
 ```
 
 3. **Access the application:**
-   - Frontend: http://localhost:5173
+   - Frontend: http://localhost:8080
    - Backend API: http://localhost:3001
    - Health Check: http://localhost:3001/api/health
 
@@ -108,7 +108,7 @@ The app is designed to integrate with:
 ### Available Scripts
 
 **Development:**
-- `npm run dev` - Start frontend only (port 5173)
+- `npm run dev` - Start frontend only (port 8080)
 - `npm run server:dev` - Start backend only (port 3001)  
 - `npm run dev:full` - Start both frontend and backend concurrently
 

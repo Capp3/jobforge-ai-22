@@ -16,7 +16,7 @@ npm run dev:full
 ```
 
 **Ports:**
-- Frontend: http://localhost:5173
+- Frontend: http://localhost:8080
 - Backend API: http://localhost:3001
 
 ## Production Deployment

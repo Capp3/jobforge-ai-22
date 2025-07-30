@@ -50,7 +50,7 @@ npm run dev:full
 
 This starts:
 - **Backend API**: http://localhost:3001
-- **Frontend**: http://localhost:5173
+- **Frontend**: http://localhost:8080
 
 #### Option B: Start Services Separately
 ```bash
@@ -66,7 +66,7 @@ npm run dev
 1. **Health Check**: Visit http://localhost:3001/api/health
    - Should return: `{"status":"OK","message":"JobForge API is running"}`
 
-2. **Frontend**: Visit http://localhost:5173
+2. **Frontend**: Visit http://localhost:8080
    - Should show the JobForge AI dashboard
 
 3. **Database**: The SQLite database is automatically created at `data/jobforge.db`
@@ -94,7 +94,7 @@ The following tables are automatically created:
 ## Available Scripts
 
 ### Development Scripts
-- `npm run dev` - Start frontend only (port 5173)
+- `npm run dev` - Start frontend only (port 8080)
 - `npm run server:dev` - Start backend only (port 3001)
 - `npm run dev:full` - Start both frontend and backend concurrently
 

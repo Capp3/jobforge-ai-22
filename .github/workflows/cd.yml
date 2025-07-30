@@ -1,0 +1,322 @@
+name: CD Pipeline
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Trigger on version tags like v1.0.0
+  release:
+    types: [published]
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  # Validate Release
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is-release: ${{ steps.check.outputs.is-release }}
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Check if this is a release
+        id: check
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]] || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "is-release=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-release=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Extract version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION="manual-${{ github.sha::8 }}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+
+  # Build Release Artifacts
+  build:
+    name: Build Release
+    runs-on: ubuntu-latest
+    needs: validate
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests (quick validation)
+        run: |
+          npm run lint
+          npm run build
+          npm run build:server
+          
+      - name: Create release package
+        run: |
+          # Create release directory
+          mkdir -p release/jobforge-${{ needs.validate.outputs.version }}
+          
+          # Copy built files
+          cp -r dist/ release/jobforge-${{ needs.validate.outputs.version }}/
+          cp -r server/ release/jobforge-${{ needs.validate.outputs.version }}/server/
+          cp package.json release/jobforge-${{ needs.validate.outputs.version }}/
+          cp package-lock.json release/jobforge-${{ needs.validate.outputs.version }}/
+          cp README.md release/jobforge-${{ needs.validate.outputs.version }}/
+          cp DEPLOYMENT.md release/jobforge-${{ needs.validate.outputs.version }}/
+          cp -r docs/ release/jobforge-${{ needs.validate.outputs.version }}/docs/
+          
+          # Create production package.json (production-only dependencies)
+          cd release/jobforge-${{ needs.validate.outputs.version }}
+          npm ci --production --ignore-scripts
+          
+          # Create deployment script
+          cat > deploy.sh << 'EOF'
+          #!/bin/bash
+          echo "🚀 Deploying JobForge AI ${{ needs.validate.outputs.version }}"
+          
+          # Install dependencies
+          npm install --production
+          
+          # Start production server
+          echo "Starting production server..."
+          npm run start:prod
+          EOF
+          chmod +x deploy.sh
+          
+          # Go back to root
+          cd ../..
+          
+          # Create tarball
+          tar -czf jobforge-${{ needs.validate.outputs.version }}.tar.gz -C release jobforge-${{ needs.validate.outputs.version }}
+          
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-package
+          path: |
+            jobforge-${{ needs.validate.outputs.version }}.tar.gz
+            release/jobforge-${{ needs.validate.outputs.version }}/
+          retention-days: 30
+
+  # Create Docker Image
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [validate, build]
+    if: needs.validate.outputs.is-release == 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=tag
+            type=ref,event=branch
+            type=sha,prefix=commit-
+            
+      - name: Create Dockerfile
+        run: |
+          cat > Dockerfile << 'EOF'
+          # Multi-stage build for JobForge AI
+          FROM node:18-alpine AS builder
+          
+          WORKDIR /app
+          
+          # Copy package files
+          COPY package*.json ./
+          RUN npm ci
+          
+          # Copy source code
+          COPY . .
+          
+          # Build application
+          RUN npm run build && npm run build:server
+          
+          # Production stage
+          FROM node:18-alpine AS production
+          
+          WORKDIR /app
+          
+          # Install production dependencies
+          COPY package*.json ./
+          RUN npm ci --production && npm cache clean --force
+          
+          # Copy built application
+          COPY --from=builder /app/dist ./dist
+          COPY --from=builder /app/server ./server
+          
+          # Create data directory
+          RUN mkdir -p data && chown -R node:node data
+          
+          # Switch to non-root user
+          USER node
+          
+          # Expose port
+          EXPOSE 3001
+          
+          # Health check
+          HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+            CMD curl -f http://localhost:3001/api/health || exit 1
+          
+          # Start application
+          CMD ["npm", "run", "start:prod"]
+          EOF
+          
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # GitHub Release
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, docker]
+    if: needs.validate.outputs.is-release == 'true' && (github.event_name == 'release' || startsWith(github.ref, 'refs/tags/'))
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Download release artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: release-package
+          
+      - name: Generate release notes
+        id: release-notes
+        run: |
+          echo "## 🚀 JobForge AI ${{ needs.validate.outputs.version }}" > release-notes.md
+          echo "" >> release-notes.md
+          echo "### 📦 What's Included" >> release-notes.md
+          echo "- Complete JobForge AI application with SQLite backend" >> release-notes.md
+          echo "- React frontend with modern UI components" >> release-notes.md
+          echo "- Express.js API server" >> release-notes.md
+          echo "- Automatic SQLite database setup" >> release-notes.md
+          echo "- Production-ready deployment scripts" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### 🐳 Docker Image" >> release-notes.md
+          echo "```bash" >> release-notes.md
+          echo "docker pull ghcr.io/${{ github.repository }}:${{ needs.validate.outputs.version }}" >> release-notes.md
+          echo "```" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### 💾 Manual Installation" >> release-notes.md
+          echo "1. Download \`jobforge-${{ needs.validate.outputs.version }}.tar.gz\`" >> release-notes.md
+          echo "2. Extract: \`tar -xzf jobforge-${{ needs.validate.outputs.version }}.tar.gz\`" >> release-notes.md
+          echo "3. Run: \`cd jobforge-${{ needs.validate.outputs.version }} && ./deploy.sh\`" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### 📚 Documentation" >> release-notes.md
+          echo "- [Setup Guide](https://github.com/${{ github.repository }}/blob/main/docs/setup-guide.md)" >> release-notes.md
+          echo "- [Quick Start](https://github.com/${{ github.repository }}/blob/main/docs/quick-start.md)" >> release-notes.md
+          echo "- [Architecture](https://github.com/${{ github.repository }}/blob/main/docs/architecture.md)" >> release-notes.md
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.validate.outputs.version }}
+          name: JobForge AI ${{ needs.validate.outputs.version }}
+          body_path: release-notes.md
+          files: |
+            jobforge-${{ needs.validate.outputs.version }}.tar.gz
+          draft: false
+          prerelease: ${{ contains(needs.validate.outputs.version, 'beta') || contains(needs.validate.outputs.version, 'alpha') }}
+
+  # Deployment Summary
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [validate, build, docker, release]
+    if: always()
+    
+    steps:
+      - name: Deployment Results
+        run: |
+          echo "## 🚀 Deployment Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.validate.result }}" = "success" ]; then
+            echo "✅ **Validation**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Validation**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.build.result }}" = "success" ]; then
+            echo "✅ **Build**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.docker.result }}" = "success" ]; then
+            echo "✅ **Docker**: Built and pushed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.docker.result }}" = "skipped" ]; then
+            echo "⏭️ **Docker**: Skipped (not a release)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Docker**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.release.result }}" = "success" ]; then
+            echo "✅ **Release**: Created successfully" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.release.result }}" = "skipped" ]; then
+            echo "⏭️ **Release**: Skipped (not a release)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Release**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.validate.outputs.is-release }}" = "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🎉 Release Information" >> $GITHUB_STEP_SUMMARY
+            echo "- **Docker Image**: \`ghcr.io/${{ github.repository }}:${{ needs.validate.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "- **Release Assets**: Available on the [Releases page](https://github.com/${{ github.repository }}/releases/tag/${{ needs.validate.outputs.version }})" >> $GITHUB_STEP_SUMMARY
+          fi 

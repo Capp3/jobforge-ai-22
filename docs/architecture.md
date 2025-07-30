@@ -97,7 +97,7 @@ Frontend (React) → API Client → Express Server → SQLite Database
 ### Development Mode:
 ```
 npm run dev:full
-├── Frontend: Vite dev server (localhost:5173)
+├── Frontend: Vite dev server (localhost:8080)
 └── Backend: tsx watch mode (localhost:3001)
 ```
 

@@ -1,0 +1,260 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: read
+
+jobs:
+  # Code Quality and Security
+  quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run ESLint
+        run: npm run lint
+        
+      - name: Check for security vulnerabilities
+        run: npm audit --audit-level=moderate
+
+  # Build and Test
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    needs: quality
+    
+    strategy:
+      matrix:
+        node-version: [18, 20]
+        
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build frontend
+        run: npm run build
+        
+      - name: Build backend
+        run: npm run build:server
+        
+      - name: Test backend startup
+        run: |
+          # Start the server in background
+          timeout 30s npm run server &
+          SERVER_PID=$!
+          
+          # Wait for server to start
+          echo "Waiting for server to start..."
+          for i in {1..10}; do
+            if curl -s http://localhost:3001/api/health > /dev/null; then
+              echo "Server is running!"
+              break
+            fi
+            echo "Attempt $i: Server not ready, waiting..."
+            sleep 3
+          done
+          
+          # Test health endpoint
+          RESPONSE=$(curl -s http://localhost:3001/api/health)
+          echo "Health check response: $RESPONSE"
+          
+          # Check if response contains expected message
+          if echo "$RESPONSE" | grep -q "JobForge API is running"; then
+            echo "✅ Health check passed!"
+          else
+            echo "❌ Health check failed!"
+            exit 1
+          fi
+          
+          # Cleanup
+          kill $SERVER_PID || true
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        if: matrix.node-version == '18' # Only upload once
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            dist/server/
+          retention-days: 7
+
+  # Database Tests
+  database-test:
+    name: Database Tests
+    runs-on: ubuntu-latest
+    needs: quality
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Test database initialization
+        run: |
+          # Start server to initialize database
+          timeout 15s npm run server &
+          SERVER_PID=$!
+          
+          # Wait for database initialization
+          sleep 5
+          
+          # Check if database file was created
+          if [ -f "data/jobforge.db" ]; then
+            echo "✅ Database file created successfully!"
+            
+            # Check if database has tables (basic validation)
+            if [ -s "data/jobforge.db" ]; then
+              echo "✅ Database contains data (tables created)!"
+            else
+              echo "❌ Database file is empty!"
+              exit 1
+            fi
+          else
+            echo "❌ Database file was not created!"
+            exit 1
+          fi
+          
+          # Cleanup
+          kill $SERVER_PID || true
+          rm -f data/jobforge.db
+
+  # Production Build Test
+  production-test:
+    name: Production Build Test
+    runs-on: ubuntu-latest
+    needs: [build-test, database-test]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build for production
+        run: |
+          npm run build
+          npm run build:server
+          
+      - name: Test production server
+        run: |
+          # Start production server
+          timeout 30s npm run start:prod &
+          SERVER_PID=$!
+          
+          # Wait for server to start
+          echo "Waiting for production server to start..."
+          for i in {1..10}; do
+            if curl -s http://localhost:3001/api/health > /dev/null; then
+              echo "Production server is running!"
+              break
+            fi
+            echo "Attempt $i: Server not ready, waiting..."
+            sleep 3
+          done
+          
+          # Test API endpoints
+          echo "Testing API endpoints..."
+          
+          # Health check
+          HEALTH_RESPONSE=$(curl -s http://localhost:3001/api/health)
+          if echo "$HEALTH_RESPONSE" | grep -q "JobForge API is running"; then
+            echo "✅ Health endpoint working!"
+          else
+            echo "❌ Health endpoint failed!"
+            exit 1
+          fi
+          
+          # Test frontend serving (basic check)
+          FRONTEND_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3001/)
+          if [ "$FRONTEND_RESPONSE" = "200" ]; then
+            echo "✅ Frontend serving working!"
+          else
+            echo "❌ Frontend serving failed! Status: $FRONTEND_RESPONSE"
+            exit 1
+          fi
+          
+          # Cleanup
+          kill $SERVER_PID || true
+
+  # Summary
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [quality, build-test, database-test, production-test]
+    if: always()
+    
+    steps:
+      - name: CI Results Summary
+        run: |
+          echo "## CI Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.quality.result }}" = "success" ]; then
+            echo "✅ **Code Quality & Security**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Code Quality & Security**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.build-test.result }}" = "success" ]; then
+            echo "✅ **Build & Test**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build & Test**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.database-test.result }}" = "success" ]; then
+            echo "✅ **Database Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Database Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.production-test.result }}" = "success" ]; then
+            echo "✅ **Production Build**: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Production Build**: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Overall Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY 

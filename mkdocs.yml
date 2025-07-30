@@ -60,6 +60,7 @@ nav:
   - Development:
     - Tasks & Roadmap: tasks.md
     - Project Brief: projectbrief.md
+    - CI/CD Pipeline: ci-cd-guide.md
   - Meta-Documentation:
     - Documentation Updates: documentation-update-summary.md
     - GitHub Pages Setup: github-pages-setup.md

@@ -99,7 +99,7 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
     remove: removeLocation,
   } = useFieldArray({
     control: form.control,
-    name: 'preferred_locations',
+    name: 'preferred_locations' as never,
   })
 
   const {
@@ -108,7 +108,7 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
     remove: removeTech,
   } = useFieldArray({
     control: form.control,
-    name: 'tech_stack',
+    name: 'tech_stack' as never,
   })
 
   // Load current preferences
@@ -122,7 +122,7 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
           form.reset({
             preferred_locations: preferences.preferred_locations,
             work_mode: preferences.work_mode,
-            travel_willingness: preferences.travel_willingness,
+            travel_willingness: preferences.travel_willingness as 'limited' | 'moderate' | 'extensive',
             salary_range: preferences.salary_range,
             career_level: preferences.career_level,
             tech_stack: preferences.tech_stack,
@@ -158,7 +158,7 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
         )
       } else {
         // Create new preferences
-        savedPreferences = await PreferencesService.createUserPreferences(data)
+        savedPreferences = await PreferencesService.createUserPreferences(data as PreferencesCreate)
       }
 
       setCurrentPreferences(savedPreferences)
@@ -223,7 +223,7 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
         form.reset({
           preferred_locations: importedPreferences.preferred_locations,
           work_mode: importedPreferences.work_mode,
-          travel_willingness: importedPreferences.travel_willingness,
+          travel_willingness: importedPreferences.travel_willingness as 'limited' | 'moderate' | 'extensive',
           salary_range: importedPreferences.salary_range,
           career_level: importedPreferences.career_level,
           tech_stack: importedPreferences.tech_stack,

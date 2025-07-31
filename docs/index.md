@@ -38,16 +38,17 @@ Get started in under 5 minutes:
 
 ### System Information
 - **[Architecture](architecture.md)** - System design and technical decisions
-- **[Migration Status](migration-status.md)** - Complete migration report from Supabase to SQLite
 - **[Database Setup](database-setup-guide.md)** - SQLite schema and management
-- **[Job Hunting Journey](job-hunting-journey.md)** - Complete process flow from n8n concept to current implementation
+- **[Job Hunting Journey](job-hunting-journey.md)** - Job hunting automation process flow
+- **[LLM Prompts](prompts.md)** - AI prompt specifications and variables
 
 ### Development
 - **[Tasks](tasks.md)** - Current roadmap and future enhancements
-- **[Project Brief](projectbrief.md)** - Original project requirements and vision
+- **[Project Brief](projectbrief.md)** - Project requirements and vision
+- **[CI/CD Pipeline](ci-cd-guide.md)** - Continuous integration and deployment
 
-### Meta-Documentation
-- **[Documentation Update Summary](documentation-update-summary.md)** - Recent documentation changes
+### Documentation
+- **[Documentation Cleanup Plan](documentation-cleanup-plan.md)** - Documentation organization plan
 - **[GitHub Pages Setup](github-pages-setup.md)** - Documentation hosting setup
 
 ## Architecture Highlights

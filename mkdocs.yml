@@ -57,12 +57,14 @@ nav:
     - Architecture: architecture.md
     - Database Guide: database-setup-guide.md
     - Job Hunting Journey: job-hunting-journey.md
+    - LLM Prompts: prompts.md
   - Development:
     - Tasks & Roadmap: tasks.md
     - Project Brief: projectbrief.md
     - CI/CD Pipeline: ci-cd-guide.md
-  - Meta-Documentation:
-    - Documentation Updates: documentation-update-summary.md
+  - Documentation:
+    - Documentation Cleanup Plan: documentation-cleanup-plan.md
+    - GitHub Pages Setup: github-pages-setup.md
 
 # Plugins
 plugins:

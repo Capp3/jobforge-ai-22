@@ -1,25 +1,25 @@
-# Job Hunting Automation System - Project Brief
-
-
+# JobForge AI - Project Brief
 
 ## Project Overview
 
-**Objective**: Automate job hunting process using n8n workflow to monitor RSS feeds, filter opportunities using AI, and deliver curated job recommendations via email.
+**Objective**: Automate the job hunting process by monitoring RSS feeds, filtering opportunities using AI, and providing curated job recommendations through a user-friendly dashboard.
 
-**Scope**: End-to-end automation from RSS feed monitoring to intelligent job filtering and email delivery.
+**Scope**: End-to-end job application management with AI-powered analysis and tracking.
 
-**Technology Stack**: n8n, Ollama (local LLM), Google Sheets API, RSS feeds, Email service
+**Technology Stack**: Express.js, React, SQLite, Ollama (local LLM), Premium LLMs (OpenAI/OpenRouter/Gemini), RSS feeds
 
 ---
 
 ## Executive Summary
 
-This system will automatically process job listings from RSS feeds, apply AI-powered filtering based on candidate profile, and deliver personalized job recommendations. The workflow includes duplicate detection, intelligent filtering, detailed analysis, and automated email delivery.
+JobForge AI is a local-first application that helps users manage their job hunting process. It processes job listings from RSS feeds, applies AI-powered filtering based on the user's profile, and provides personalized job recommendations through a React dashboard. The system includes duplicate detection, intelligent filtering with a two-tier LLM architecture, detailed analysis, and application tracking.
 
 **Key Benefits**:
+- Complete data privacy with local SQLite storage
 - Automated job discovery from multiple sources
-- AI-powered relevance filtering
+- Two-tier AI-powered relevance filtering (cost-efficient)
 - Personalized job analysis and recommendations
+- Comprehensive application tracking and status management
 - Reduced manual job hunting time
 - Consistent application of filtering criteria
 
@@ -28,15 +28,18 @@ This system will automatically process job listings from RSS feeds, apply AI-pow
 ## Technical Architecture
 
 ### Core Components
-1. **RSS Feed Processor** - Monitors multiple job feeds
-2. **Duplicate Detection System** - Uses GUID-based identification
-3. **AI Filtering Engine** - Two-tier AI analysis (Ollama + Advanced AI)
-4. **Data Storage** - Google Sheets for job tracking
-5. **Email Delivery System** - Automated job recommendations
+1. **Express.js Backend** - REST API for data access and business logic
+2. **React Frontend** - User-friendly dashboard and job management UI
+3. **SQLite Database** - Local data storage with complete privacy
+4. **RSS Feed Processor** - Monitors multiple job feeds for opportunities
+5. **Duplicate Detection System** - Uses URL or content-based identification
+6. **AI Filtering Engine** - Two-tier AI analysis (Ollama + Premium LLM)
+7. **Job Tracking System** - Status management and application monitoring
+8. **Email Notification System** - Alerts and updates for job activities
 
 ### Data Flow
 ```
-RSS Feeds → Unique ID Assignment → Duplicate Check → AI Filtering → Detailed Analysis → Email Delivery
+User Input/RSS Feeds → SQLite Storage → AI Analysis (Two-tier) → Dashboard Display → Status Tracking
 ```
 
 ---

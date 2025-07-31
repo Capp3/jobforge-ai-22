@@ -174,10 +174,6 @@ We're actively implementing these core functionality areas:
 
 See the [docs/tasks.md](docs/tasks.md) file for the detailed implementation plan.
 
-## Migration from Supabase
-
-This app was originally built with Supabase and has been simplified to use SQLite. The frontend UI and business logic remain unchanged - only the data layer was modified.
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -2,98 +2,7 @@
 
 ## Overview
 
-This document maps the complete job hunting automation journey for JobForge AI. The project originally started as an n8n workflow concept but has evolved into a local-first SQLite + Express.js application. This document shows both the original vision and the current implementation path.
-
-## Original n8n Workflow Concept
-
-The project began with a vision of fully automated job hunting using n8n workflows. Here's the original conceptual flow:
-
-### Original n8n Flow Diagram
-
-```mermaid
-flowchart TD
-    %% Original n8n Trigger and Initial Setup
-    A[Schedule Trigger<br/>Daily at 9:00 AM] --> B[Set Workflow Variables<br/>Initialize counters & config]
-    B --> C[Set Job Preferences<br/>Location, remote, travel preferences]
-    C --> D[Get RSS Feed URLs<br/>From configuration]
-
-    %% RSS Processing Loop
-    D --> E[Loop Over RSS Feeds<br/>For each feed URL]
-    E --> F[RSS Feed Trigger<br/>Pull latest items]
-    F --> G{Feed Success?}
-    G -->|No| H[Log Error<br/>Continue to next feed]
-    G -->|Yes| I[Process RSS Items<br/>Extract job data]
-
-    %% Data Processing
-    I --> J[Code Node: Clean Data<br/>Remove CDATA, extract GUID]
-    J --> K[Code Node: Generate Unique ID<br/>Use GUID or create hash]
-    K --> L[Google Sheets: Check Duplicates<br/>Query by uniqueID]
-
-    %% Duplicate Handling
-    L --> M{Duplicate Found?}
-    M -->|Yes| N[Skip Job<br/>Log as duplicate]
-    M -->|No| O[Google Sheets: Add New Job<br/>Insert with status 'new']
-
-    %% Two-Tier LLM Processing Pipeline
-    O --> P[Code Node: Prepare Basic Filter Data<br/>Format job info + user preferences]
-    P --> Q[HTTP Request: Check Ollama<br/>Test if service available]
-
-    %% Ollama Availability Check
-    Q --> R{Ollama Available?}
-    R -->|No| S[Fatal Error Node<br/>Stop workflow, send alert]
-    R -->|Yes| T[HTTP Request: Ollama API<br/>LLM Agent 1: Basic Filtering]
-
-    %% LLM Agent 1: Basic Filtering
-    T --> U[Code Node: Parse Basic Filter Response<br/>Extract PASS/FAIL decision]
-    U --> V{Meets Basic Criteria?}
-    V -->|No| W[Google Sheets: Update Status<br/>Mark as 'filtered_out' + reason]
-    V -->|Yes| X[Code Node: Prepare Deep Analysis<br/>Format for premium LLM]
-
-    %% LLM Agent 2: Deep Review
-    X --> Y[HTTP Request: Premium LLM API<br/>LLM Agent 2: Deep Review]
-    Y --> Z[Code Node: Parse Deep Analysis<br/>Extract Red/Amber/Green rating]
-    Z --> AA[Code Node: Format Analysis Results<br/>Prepare comprehensive summary]
-
-    %% Email Preparation
-    AA --> BB[Code Node: Batch Jobs<br/>Group approved jobs]
-    BB --> CC[Code Node: Generate Email Content<br/>Apply template]
-    CC --> DD[Send Email Node<br/>Deliver recommendations]
-
-    %% Status Updates and Logging
-    DD --> EE[Google Sheets: Update Status<br/>Mark as 'emailed']
-    EE --> FF[Code Node: Update Statistics<br/>Track metrics]
-    FF --> GG{More Jobs in Batch?}
-    GG -->|Yes| V
-    GG -->|No| HH{More Feeds?}
-
-    %% Loop Control
-    HH -->|Yes| D
-    HH -->|No| II[Code Node: Final Logging<br/>Log completion stats]
-    II --> JJ[Workflow Complete<br/>Success]
-
-    %% Error Handling Paths
-    H --> HH
-    N --> HH
-    W --> HH
-    S --> KK[Error Handler<br/>Send notification]
-
-    %% Styling
-    classDef trigger fill:#e1f5fe
-    classDef process fill:#f3e5f5
-    classDef decision fill:#fff3e0
-    classDef storage fill:#e8f5e8
-    classDef error fill:#ffebee
-    classDef ai fill:#fce4ec
-    classDef email fill:#e0f2f1
-
-    class A,B trigger
-    class C,D,E,F,I,J,K,O,P,X,AA,BB,EE,II process
-    class G,L,M,Q,R,V,FF,GG,HH decision
-    class L,O,EE storage
-    class H,S,KK error
-    class T,Y ai
-    class DD email
-```
+This document maps the job hunting automation journey for JobForge AI, a local-first SQLite + Express.js application for managing job applications with AI-powered analysis.
 
 ## Current Implementation Journey
 
@@ -132,7 +41,7 @@ flowchart TD
     P -->|No| R[Add to Database<br/>status = 'discovered']
 
     %% Two-Tier LLM Analysis Pipeline
-    R --> S[LLM Agent 1: Basic Filtering<br/>Ollama (Local) - Cost Efficient]
+    R --> S[LLM Agent 1: Basic Filtering<br/>Ollama / Local - Cost Efficient]
     L --> S
     S --> T[Check Basic Requirements<br/>Location, Salary, Job Titles]
     T --> U{Meets Basic Criteria?}
@@ -193,35 +102,20 @@ flowchart TD
     class FF,GG,LL analytics
 ```
 
-## Evolution Comparison
+## Current Approach Benefits
 
-### Key Changes from Original Concept
-
-| Aspect | Original n8n Vision | Current Implementation |
-|--------|-------------------|----------------------|
-| **Automation Level** | Fully automated daily workflow | Manual job entry with planned automation |
-| **Data Storage** | Google Sheets | Local SQLite database |
-| **User Interface** | Email notifications only | Full React dashboard |
-| **Deployment** | Cloud-based n8n instance | Local-first application |
-| **AI Integration** | Ollama + Advanced AI pipeline | Two-tier LLM architecture (Ollama + Premium) |
-| **RSS Processing** | Core feature | Required daily automation |
-| **User Control** | Set-and-forget automation | Interactive job management |
-
-### Benefits of Current Approach
+### Key Features
 
 1. **User Control**: Direct interaction with job data and status management
-2. **Data Privacy**: Complete local data ownership
+2. **Data Privacy**: Complete local data ownership with SQLite
 3. **Flexibility**: Easy to modify preferences and job details
 4. **Performance**: Instant access to local data
 5. **Reliability**: No dependency on external services
-
-### Retained Core Concepts
-
-1. **AI-Powered Analysis**: Still planned for job evaluation
-2. **RSS Feed Processing**: Future automation feature
-3. **Email Notifications**: Planned for alerts and updates
-4. **Preference-Based Filtering**: User-defined criteria for job matching
-5. **Duplicate Detection**: Prevent processing same jobs multiple times
+6. **AI-Powered Analysis**: Two-tier LLM architecture for job evaluation
+7. **RSS Feed Processing**: Automated job discovery
+8. **Email Notifications**: Alerts and updates for job activities
+9. **Preference-Based Filtering**: User-defined criteria for job matching
+10. **Duplicate Detection**: Prevent processing same jobs multiple times
 
 ## Implementation Phases
 
@@ -290,7 +184,7 @@ flowchart LR
     E[RSS Feeds<br/>Daily] -.-> F[RSS Parser<br/>Scheduled]
     F -.-> C
     
-    G[Ollama (Local)<br/>Agent 1] -.-> H[Basic Filtering<br/>Cost-Free]
+    G[Ollama / Local<br/>Agent 1] -.-> H[Basic Filtering<br/>Cost-Free]
     H -.-> C
     
     I[Premium LLM<br/>Agent 2] -.-> J[Deep Analysis<br/>Pay-per-use]
@@ -421,71 +315,9 @@ async function getAvailableOllamaModels() {
 
 ### LLM Prompt Specifications
 
-#### **Agent 1: Basic Filtering Prompt**
-```markdown
-You are a job filtering assistant. Evaluate this job listing against basic requirements.
+LLM prompts have been moved to their own dedicated document for better maintenance and readability. 
 
-USER PREFERENCES:
-- Preferred Locations: {locations}
-- Salary Range: {salary_range}
-- Job Titles: {job_titles}
-- Work Mode: {work_mode}
-
-JOB LISTING:
-Title: {job_title}
-Company: {company}
-Location: {location}
-Description: {description}
-
-TASK:
-1. Check if job location matches preferred locations
-2. Verify salary (if mentioned) is within range
-3. Confirm job title aligns with preferences
-4. Assess work mode compatibility
-
-OUTPUT FORMAT (JSON):
-{
-  "decision": "PASS" | "FAIL",
-  "reasoning": "Brief explanation",
-  "confidence": "HIGH" | "MEDIUM" | "LOW",
-  "matches": ["location_match", "salary_match", "title_match"]
-}
-```
-
-#### **Agent 2: Deep Review Prompt**
-```markdown
-You are a senior career advisor. Provide a comprehensive analysis of this job opportunity.
-
-CANDIDATE PROFILE:
-{detailed_profile}
-
-JOB DETAILS:
-Title: {job_title}
-Company: {company}
-Location: {location}
-Full Description: {complete_description}
-
-ANALYSIS REQUIREMENTS:
-1. **Why This Job is Worth Applying**: Specific opportunities and benefits
-2. **Technical Challenges**: Main technical challenges and learning opportunities
-3. **Career Growth Potential**: How this role advances career trajectory
-4. **Company Assessment**: Company stability, culture, and reputation
-5. **Potential Red Flags**: Concerns requiring investigation
-6. **Application Strategy**: How to approach the application process
-
-OUTPUT FORMAT (JSON):
-{
-  "rating": "GREEN" | "AMBER" | "RED",
-  "confidence": "HIGH" | "MEDIUM" | "LOW",
-  "why_apply": "2-3 sentences on opportunities",
-  "technical_challenges": "Key challenges and learning opportunities",
-  "career_growth": "Career advancement potential",
-  "company_assessment": "Company evaluation and culture fit",
-  "red_flags": ["flag1", "flag2"],
-  "application_strategy": "Specific application approach",
-  "key_takeaways": ["takeaway1", "takeaway2", "takeaway3"]
-}
-```
+See the [LLM Prompts](prompts.md) documentation for the complete prompt specifications for both Agent 1 (Basic Filtering) and Agent 2 (Deep Review), along with available template variables.
 
 ## RSS Feed Integration (Required)
 

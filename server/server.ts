@@ -4,6 +4,8 @@ import cors from 'cors';
 import { initializeDatabase } from './database.js';
 import jobsRouter from './routes/jobs.js';
 import preferencesRouter from './routes/preferences.js';
+import applicationFlowRouter from './routes/applicationFlow.js';
+import llmIntegrationRouter from './routes/llmIntegration.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,6 +20,8 @@ initializeDatabase();
 // Routes
 app.use('/api/jobs', jobsRouter);
 app.use('/api/preferences', preferencesRouter);
+app.use('/api', applicationFlowRouter);
+app.use('/api', llmIntegrationRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

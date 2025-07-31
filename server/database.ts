@@ -95,11 +95,116 @@ export function initializeDatabase() {
     )
   `);
 
+  // Application Flow Events table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS application_events (
+      id TEXT PRIMARY KEY,
+      job_id TEXT NOT NULL,
+      event_type TEXT NOT NULL,
+      scheduled_date TEXT,
+      completed_date TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Follow-up Actions table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS follow_up_actions (
+      id TEXT PRIMARY KEY,
+      job_id TEXT NOT NULL,
+      action_type TEXT NOT NULL,
+      due_date TEXT NOT NULL,
+      completed BOOLEAN DEFAULT 0,
+      completed_date TEXT,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+    )
+  `);
+
+  // Interviews table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS interviews (
+      id TEXT PRIMARY KEY,
+      job_id TEXT NOT NULL,
+      interview_type TEXT NOT NULL,
+      scheduled_date TEXT NOT NULL,
+      duration_minutes INTEGER,
+      interviewer_name TEXT,
+      interviewer_email TEXT,
+      location TEXT,
+      meeting_link TEXT,
+      preparation_notes TEXT,
+      feedback_notes TEXT,
+      outcome TEXT DEFAULT 'scheduled',
+      next_steps TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+    )
+  `);
+
+  // LLM Configurations table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS llm_configurations (
+      id TEXT PRIMARY KEY,
+      config_data TEXT NOT NULL,
+      active BOOLEAN DEFAULT 1,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // LLM Basic Analysis Results table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS llm_analysis_basic (
+      id TEXT PRIMARY KEY,
+      job_id TEXT NOT NULL,
+      rating TEXT NOT NULL,
+      reasoning TEXT,
+      processing_time_ms REAL,
+      model_used TEXT,
+      provider TEXT,
+      cost_estimate REAL DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+    )
+  `);
+
+  // LLM Detailed Analysis Results table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS llm_analysis_detailed (
+      id TEXT PRIMARY KEY,
+      job_id TEXT NOT NULL,
+      analysis_data TEXT NOT NULL,
+      processing_time_ms REAL,
+      model_used TEXT,
+      provider TEXT,
+      cost_estimate REAL DEFAULT 0,
+      confidence_score REAL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (job_id) REFERENCES jobs(id) ON DELETE CASCADE
+    )
+  `);
+
   // Create indexes for better performance
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status);
     CREATE INDEX IF NOT EXISTS idx_jobs_created_at ON jobs(created_at);
     CREATE INDEX IF NOT EXISTS idx_jobs_unique_id ON jobs(unique_id);
+    CREATE INDEX IF NOT EXISTS idx_events_job_id ON application_events(job_id);
+    CREATE INDEX IF NOT EXISTS idx_events_scheduled_date ON application_events(scheduled_date);
+    CREATE INDEX IF NOT EXISTS idx_follow_ups_job_id ON follow_up_actions(job_id);
+    CREATE INDEX IF NOT EXISTS idx_follow_ups_due_date ON follow_up_actions(due_date);
+    CREATE INDEX IF NOT EXISTS idx_interviews_job_id ON interviews(job_id);
+    CREATE INDEX IF NOT EXISTS idx_interviews_scheduled_date ON interviews(scheduled_date);
+    CREATE INDEX IF NOT EXISTS idx_llm_config_active ON llm_configurations(active);
+    CREATE INDEX IF NOT EXISTS idx_llm_basic_job_id ON llm_analysis_basic(job_id);
+    CREATE INDEX IF NOT EXISTS idx_llm_basic_created_at ON llm_analysis_basic(created_at);
+    CREATE INDEX IF NOT EXISTS idx_llm_detailed_job_id ON llm_analysis_detailed(job_id);
+    CREATE INDEX IF NOT EXISTS idx_llm_detailed_created_at ON llm_analysis_detailed(created_at);
   `);
 
   console.log('Database initialized successfully');

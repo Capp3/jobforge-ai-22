@@ -1,187 +1,239 @@
-# JobForge AI - Local Job Hunting Automation
+# JobForge AI
 
-A simplified, self-contained job hunting automation system built with React, TypeScript, and SQLite. Perfect for local use without external dependencies.
+[![CI Pipeline](https://github.com/YOUR_USERNAME/jobforge/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/jobforge/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)](https://reactjs.org/)
 
-## Features
+> A modern, self-contained job hunting automation platform designed for personal use. Track applications, set preferences, and leverage AI-powered filtering—all running locally with complete data ownership.
 
-- 📊 **Job Management**: Track job applications with status updates
-- 🔍 **Smart Filtering**: AI-powered job filtering based on your preferences  
-- 📋 **Preferences System**: Configure your job search criteria
-- 💾 **Local Storage**: SQLite database for complete data ownership
-- 🖥️ **Single User**: Designed for personal use, no authentication needed
+## 🌟 Features
 
-## Tech Stack
+- **📊 Job Application Tracking** - Comprehensive management of job applications with status tracking
+- **🔍 Smart AI Filtering** - Intelligent job matching based on your personalized criteria
+- **⚙️ Preference Management** - Detailed configuration of location, salary, tech stack, and work preferences
+- **💾 Local Data Storage** - SQLite-based storage ensuring complete data privacy and ownership
+- **🖥️ Single-User Design** - Streamlined interface optimized for personal job hunting workflows
+- **🚀 Modern Tech Stack** - Built with React 18, TypeScript, and Express.js for reliability and performance
 
-- **Frontend**: React 18 + TypeScript + Vite + Tailwind CSS
-- **Backend**: Express.js + SQLite + better-sqlite3
-- **UI Components**: shadcn/ui + Radix UI
-- **Database**: SQLite (local file-based)
+## 🛠️ Technology Stack
 
-## Quick Start
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
+| **Backend** | Express.js, SQLite, better-sqlite3 |
+| **UI Framework** | shadcn/ui, Radix UI |
+| **Database** | SQLite (local file-based) |
+| **Build Tools** | Vite, TypeScript, ESLint |
+
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm or yarn
+- **Node.js** 18.0.0 or higher
+- **npm** (included with Node.js)
 
-### Installation & Setup
+### Installation
 
-1. **Clone and install dependencies:**
-```bash
-git clone <your-repo>
-cd jobforge-ai
-npm install
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/jobforge.git
+   cd jobforge
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the application:**
+   ```bash
+   # Start both frontend and backend (recommended)
+   npm run dev:full
+   
+   # Or start them separately:
+   npm run server:dev  # Backend API (port 3001)
+   npm run dev         # Frontend (port 8080)
+   ```
+
+4. **Access the application:**
+   - **Main Application**: [http://localhost:8080](http://localhost:8080)
+   - **API Health Check**: [http://localhost:3001/api/health](http://localhost:3001/api/health)
+
+The SQLite database is automatically created on first run—no additional setup required!
+
+## 📁 Project Structure
+
 ```
-
-2. **Start the development servers:**
-```bash
-# Start both frontend and backend together (recommended)
-npm run dev:full
-
-# Or start them separately:
-npm run server:dev  # Backend API (port 3001)
-npm run dev         # Frontend (port 8080)
-```
-
-3. **Access the application:**
-   - Frontend: http://localhost:8080
-   - Backend API: http://localhost:3001
-   - Health Check: http://localhost:3001/api/health
-
-### Database
-
-The SQLite database (`data/jobforge.db`) is automatically created on first run. No setup required!
-
-## Project Structure
-
-```
-jobforge-ai/
-├── src/                    # Frontend React application
-│   ├── components/         # UI components
-│   ├── pages/             # Main application pages
+jobforge/
+├── src/                    # React frontend application
+│   ├── components/         # Reusable UI components
+│   ├── pages/             # Application pages
 │   ├── services/          # API client services
-│   └── types/             # TypeScript definitions
-├── server/                # Backend Express API
-│   ├── database.ts        # SQLite database setup
+│   └── types/             # TypeScript type definitions
+├── server/                # Express.js backend
+│   ├── database.ts        # SQLite database configuration
 │   ├── routes/           # API route handlers
-│   └── server.ts         # Express server
-├── data/                 # SQLite database files (auto-created)
-└── docs/                 # Documentation
+│   └── server.ts         # Express server setup
+├── data/                 # SQLite database storage (auto-created)
+├── docs/                 # Project documentation
+└── public/               # Static assets
 ```
 
-## API Endpoints
+## 🔧 Configuration
 
-The backend provides a REST API:
+### Job Search Preferences
 
-### Jobs
-- `GET /api/jobs` - Get all jobs (with filtering)
-- `GET /api/jobs/:id` - Get single job
-- `POST /api/jobs` - Create new job
-- `PUT /api/jobs/:id` - Update job
-- `DELETE /api/jobs/:id` - Delete job
-- `GET /api/jobs/stats/status-counts` - Get job counts by status
+Customize your job hunting criteria through the application interface:
 
-### Preferences  
-- `GET /api/preferences` - Get user preferences
-- `POST /api/preferences` - Create preferences
-- `PUT /api/preferences/:id` - Update preferences
-- `POST /api/preferences/defaults` - Get or create default preferences
+| Category | Options |
+|----------|---------|
+| **Locations** | Preferred work locations and geographic areas |
+| **Work Mode** | Remote, hybrid, on-site preferences |
+| **Salary Range** | Expected compensation brackets |
+| **Experience Level** | Junior, mid-level, senior, executive |
+| **Technologies** | Preferred tech stack and programming languages |
+| **Company Size** | Startup, SME, enterprise preferences |
 
-## Configuration
+### Environment Variables
 
-### Job Preferences
-Configure your job search criteria in the "Preferences" tab:
-- **Locations**: Preferred work locations
-- **Work Mode**: Remote, hybrid, or on-site
-- **Salary Range**: Expected salary range
-- **Career Level**: Junior, mid, senior, etc.
-- **Tech Stack**: Preferred technologies
-- **Company Size**: Startup, medium, large, enterprise
+Copy `.env.sample` to `.env` and customize as needed:
 
-### LLM Configuration (Future)
-The app is designed to integrate with:
-- **Ollama**: For local AI processing
-- **Advanced AI Models**: For detailed job analysis
+```bash
+cp .env.sample .env
+```
 
-## Development
+The `.env` file supports these configuration options:
+
+```env
+# Server Configuration
+PORT=3001
+NODE_ENV=development
+
+# Database Configuration
+DB_PATH=./data/jobforge.db
+
+# API Configuration
+API_BASE_URL=http://localhost:3001
+```
+
+## 🔌 API Reference
+
+### Jobs Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/jobs` | Retrieve all jobs with optional filtering |
+| `GET` | `/api/jobs/:id` | Get specific job details |
+| `POST` | `/api/jobs` | Create new job entry |
+| `PUT` | `/api/jobs/:id` | Update existing job |
+| `DELETE` | `/api/jobs/:id` | Remove job entry |
+| `GET` | `/api/jobs/stats/status-counts` | Get application status statistics |
+
+### Preferences Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/preferences` | Retrieve user preferences |
+| `POST` | `/api/preferences` | Create new preferences |
+| `PUT` | `/api/preferences/:id` | Update preferences |
+| `POST` | `/api/preferences/defaults` | Initialize default preferences |
+
+## 🏗️ Development
 
 ### Available Scripts
 
-**Development:**
-- `npm run dev` - Start frontend only (port 8080)
-- `npm run server:dev` - Start backend only (port 3001)  
-- `npm run dev:full` - Start both frontend and backend concurrently
+**Development Commands:**
+```bash
+npm run dev          # Start frontend development server
+npm run server:dev   # Start backend with hot reload
+npm run dev:full     # Start both frontend and backend
+```
 
-**Production:**
-- `npm run build` - Build frontend for production
-- `npm run build:server` - Build backend TypeScript
-- `npm run start:prod` - Start production server
-- `npm run serve` - Serve built frontend with http-server (port 8080)
+**Production Commands:**
+```bash
+npm run build        # Build frontend for production
+npm run build:server # Compile backend TypeScript
+npm run start:prod   # Start production server
+```
 
-**Development Tools:**
-- `npm run lint` - Run ESLint code quality checks
-- `npm run preview` - Preview production build locally
+**Quality Assurance:**
+```bash
+npm run lint         # Run ESLint code analysis
+npm run preview      # Preview production build
+```
 
 ### Building for Production
+
 ```bash
-# Build frontend
+# 1. Build the frontend
 npm run build
 
-# Build and start production server
+# 2. Compile the backend
 npm run build:server
+
+# 3. Start the production server
 npm run start:prod
 ```
 
-### Database Management
+## 📊 Database Schema
 
-The SQLite database includes these tables:
-- `jobs` - Job listings and application status
-- `preferences` - User preferences and settings
-- `rss_feeds` - RSS feed sources (future)
-- `processing_stats` - Algorithm performance metrics (future)
+The application uses SQLite with the following core tables:
 
-## Troubleshooting
+- **`jobs`** - Job listings and application tracking
+- **`preferences`** - User configuration and search criteria
+- **`rss_feeds`** - RSS feed sources for job discovery *(planned)*
+- **`processing_stats`** - AI processing metrics *(planned)*
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-1. **Backend won't start:**
-   - Check if port 3001 is available
-   - Ensure SQLite files can be created in `data/` directory
+**Backend Connection Problems:**
+- Verify port 3001 is available
+- Check that the `data/` directory is writable
+- Ensure Node.js version meets requirements
 
-2. **Frontend can't connect to backend:**
-   - Verify backend is running on port 3001
-   - Check API client configuration in `src/services/apiClient.ts`
+**Frontend API Errors:**
+- Confirm backend is running on port 3001
+- Check network connectivity between frontend and backend
+- Review browser console for detailed error messages
 
-3. **Database issues:**
-   - Delete `data/jobforge.db` to reset database
-   - Check file permissions in `data/` directory
+**Database Issues:**
+- Delete `data/jobforge.db` to reset the database
+- Verify file permissions in the `data/` directory
+- Check disk space availability
 
-### Development Tips
+### Development Tools
 
-- Use browser dev tools for frontend debugging
-- Check backend logs in the terminal
-- SQLite database can be inspected with DB Browser for SQLite
+- Use browser DevTools for frontend debugging
+- Monitor backend logs in the terminal
+- Inspect SQLite database with [DB Browser for SQLite](https://sqlitebrowser.org/)
 
-## Current Development Focus
+## 🤝 Contributing
 
-We're actively implementing these core functionality areas:
+Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
 
-1. **Application Logic Flow**: Creating a complete job hunting workflow
-2. **LLM Integration**: Adding AI-powered job analysis and matching
-3. **Dashboard Implementation**: Enhancing the user interface
-4. **RSS Feed Integration**: Automating job discovery
-5. **Email Notification System**: Keeping users informed
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-See the [docs/tasks.md](docs/tasks.md) file for the detailed implementation plan.
+## 📄 License
 
-## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🔒 Privacy & Security
 
-## Contributing
+JobForge AI is designed with privacy in mind:
 
-This is a personal project, but suggestions and improvements are welcome!
+- **Local-Only Operation**: All data remains on your machine
+- **No External Dependencies**: No third-party services required for core functionality
+- **Data Ownership**: Complete control over your job hunting data
+- **Self-Contained**: Runs independently without internet connectivity for basic features
 
 ---
 
-**Note**: This is a local-only application designed for personal use. It's not intended for multi-user or production deployment on the internet.
+**Built with ❤️ for job hunters who value privacy and control over their data.**

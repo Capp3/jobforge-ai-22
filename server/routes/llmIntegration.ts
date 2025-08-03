@@ -70,7 +70,7 @@ router.get('/llm-config', (req, res) => {
 // Get available Ollama models
 router.get('/ollama/models', async (req, res) => {
   try {
-    const endpoint = (req.query.endpoint as string) || 'http://localhost:11434';
+    const endpoint = (req.query.endpoint as string) || 'http://192.168.1.17:11434';
     
     const response = await fetch(`${endpoint}/api/tags`);
     
@@ -99,7 +99,7 @@ router.get('/ollama/models', async (req, res) => {
     console.error('Error fetching Ollama models:', error);
     res.status(503).json({ 
       error: 'Failed to connect to Ollama',
-      endpoint: req.query.endpoint || 'http://localhost:11434',
+      endpoint: req.query.endpoint || 'http://192.168.1.17:11434',
       models: []
     });
   }

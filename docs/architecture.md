@@ -53,9 +53,21 @@ This application was originally built with Supabase Cloud but has been migrated 
    - Feed URLs and processing status
    - Last processed timestamps and error tracking
 
-4. **processing_stats** - Algorithm performance metrics
-   - Job processing statistics
-   - Performance timing and error counts
+4. **llm_configurations** - LLM provider settings
+   - Provider API keys and endpoints
+   - Model selection and configuration
+
+5. **application_events** - Application lifecycle events
+   - Event tracking and milestones
+   - Workflow automation triggers
+
+6. **follow_up_actions** - Scheduled follow-up tasks
+   - Due dates and completion status
+   - Action type and descriptions
+
+7. **interviews** - Interview scheduling
+   - Interview types and preparation
+   - Scheduling and outcome tracking
 
 ## API Architecture
 
@@ -126,14 +138,19 @@ npm run build && npm run start:prod
 - ✅ **Error Handling**: Comprehensive error states
 - ✅ **Performance**: SQLite is extremely fast for this use case
 
-## Future Considerations
+## Current Features & Future Considerations
 
-### Potential Enhancements:
-1. **AI Integration**: Add Ollama/OpenAI integration for job filtering
-2. **RSS Processing**: Automated feed parsing and job import
-3. **Email Notifications**: Job alert system
-4. **Data Import/Export**: Backup and restore functionality
-5. **Analytics Dashboard**: Job market insights and trends
+### ✅ Implemented Features:
+1. **AI Integration**: Complete two-tier LLM system with Ollama/OpenAI integration for job filtering
+2. **Application Workflow**: Full lifecycle management with events, follow-ups, and interview tracking
+3. **Interactive Dashboard**: Tabbed interface with Overview, Jobs, Pipeline Kanban, and Analytics
+4. **LLM Configuration**: Dynamic model discovery and provider testing
+
+### 🔄 Future Enhancements:
+1. **RSS Processing**: Automated feed parsing and job import
+2. **Email Notifications**: Job alert system
+3. **Data Import/Export**: Backup and restore functionality
+4. **Advanced Analytics**: Job market insights and trends
 
 ### Scalability Notes:
 - SQLite handles millions of records efficiently for read-heavy workloads

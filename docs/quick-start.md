@@ -21,7 +21,7 @@ npm install
 
 ### 2. Start the Application
 ```bash
-# Start both frontend and backend
+# Start both frontend and backend (recommended)
 npm run dev:full
 ```
 
@@ -33,17 +33,19 @@ That's it! The SQLite database is automatically created on first run.
 
 ## What You Get
 
-✅ **Job Tracking**: Add, edit, and track job applications
-✅ **Status Management**: Track application progress
-✅ **Preferences**: Configure your job search criteria
-✅ **Local Storage**: All data stays on your machine
-✅ **No Setup**: Database automatically created
+✅ **Job Tracking**: Add, edit, and track job applications with full lifecycle management  
+✅ **AI-Powered Analysis**: LLM integration for job filtering and detailed analysis  
+✅ **Interactive Dashboard**: Tabbed interface with Overview, Jobs, Pipeline, and Analytics  
+✅ **Application Workflow**: Complete status tracking from discovery to offer  
+✅ **Local Storage**: All data stays on your machine with SQLite  
+✅ **No Setup**: Database automatically created  
 
 ## First Steps
 
-1. **Add Your First Job**: Click "Add Job" and enter job details
-2. **Set Preferences**: Go to "Preferences" tab to configure your search criteria
-3. **Track Progress**: Update job statuses as you apply and interview
+1. **Add Your First Job**: Use the Dashboard to add and track job applications
+2. **Configure LLM**: Set up Ollama or cloud LLM providers for AI analysis
+3. **Set Preferences**: Configure your job search criteria and workflow
+4. **Track Applications**: Use the Kanban board to manage your application pipeline
 
 ## Common Commands
 

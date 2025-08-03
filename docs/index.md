@@ -48,7 +48,7 @@ Get started in under 5 minutes:
 - **[CI/CD Pipeline](ci-cd-guide.md)** - Continuous integration and deployment
 
 ### Documentation
-- **[Documentation Cleanup Plan](documentation-cleanup-plan.md)** - Documentation organization plan
+- **[Documentation Cleanup Summary](documentation-cleanup-summary.md)** - Recent documentation cleanup report
 - **[GitHub Pages Setup](github-pages-setup.md)** - Documentation hosting setup
 
 ## Architecture Highlights

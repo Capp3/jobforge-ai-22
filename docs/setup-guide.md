@@ -116,12 +116,14 @@ The following tables are automatically created:
 # Build the frontend
 npm run build
 
-# Build the backend (if using TypeScript compilation)
+# Build the backend (if using TypeScript compilation)  
 npm run build:server
 
 # Start production server (serves both frontend and API)
 npm run start:prod
 ```
+
+**Single Port Deployment:** The production server runs everything on port 3001, serving both the UI and API.
 
 The production server:
 - Serves the built React app from the `/dist` directory
@@ -278,5 +280,29 @@ If you encounter issues:
 4. Ensure you're using Node.js 18+ and latest npm
 
 ---
+
+## Data Management
+
+### Backup Strategy
+
+The SQLite database can be easily backed up:
+
+```bash
+# Simple backup
+cp data/jobforge.db backups/jobforge-$(date +%Y%m%d).db
+
+# Restore from backup
+cp backups/jobforge-20240101.db data/jobforge.db
+```
+
+### Database Reset
+
+If you need to start fresh:
+
+```bash
+# Stop the server, then:
+rm -f data/jobforge.db
+npm run server:dev  # Database auto-recreated
+```
 
 **Note**: This is a local-only application designed for personal use. It's not intended for multi-user deployment or internet-facing use. 

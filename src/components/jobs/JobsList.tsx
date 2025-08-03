@@ -26,8 +26,14 @@ import {
   Play,
   Mail,
   Download,
-  AlertCircle
+  AlertCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Grid,
+  List
 } from 'lucide-react'
+import { JobDetailView } from '@/components/dashboard'
 import { Job, JobStatus } from '@/types/algorithm'
 import { 
   useApprovedJobs,
@@ -43,12 +49,16 @@ import {
 interface JobsListProps {
   defaultView?: 'approved' | 'all' | JobStatus
   showControls?: boolean
+  showDetailView?: boolean
 }
 
-export function JobsList({ defaultView = 'approved', showControls = true }: JobsListProps) {
+export function JobsList({ defaultView = 'approved', showControls = true, showDetailView = true }: JobsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<JobStatus | 'all' | 'approved'>(defaultView)
-  const [sortBy, setSortBy] = useState<'date' | 'rating' | 'company'>('date')
+  const [sortBy, setSortBy] = useState<'date' | 'rating' | 'company' | 'title'>('date')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null)
+  const [showJobDetail, setShowJobDetail] = useState(false)
 
   // Real-time updates
   useJobsRealtime()

@@ -36,10 +36,13 @@ import {
   MapPin,
   Calendar,
   Star,
-  AlertTriangle
+  AlertTriangle,
+  Eye,
+  DollarSign
 } from 'lucide-react'
 import { Job, JobStatus } from '@/types/algorithm'
 import { useMarkJobAsApplied, useMarkJobAsRejected, useUpdateJobStatus } from '@/hooks/useJobs'
+import { JobDetailView } from '@/components/dashboard'
 
 interface JobCardProps {
   job: Job
@@ -50,6 +53,7 @@ interface JobCardProps {
 export function JobCard({ job, showFullDetails = false, onJobClick }: JobCardProps) {
   const [isExpanded, setIsExpanded] = useState(showFullDetails)
   const [showActions, setShowActions] = useState(false)
+  const [showDetailView, setShowDetailView] = useState(false)
 
   const markAsApplied = useMarkJobAsApplied()
   const markAsRejected = useMarkJobAsRejected()
@@ -72,6 +76,14 @@ export function JobCard({ job, showFullDetails = false, onJobClick }: JobCardPro
   const handleMarkAsRejected = () => {
     markAsRejected.mutate({ id: job.id, reason: 'Not interested' })
     setShowActions(false)
+  }
+
+  const handleViewDetails = () => {
+    if (onJobClick) {
+      onJobClick(job)
+    } else {
+      setShowDetailView(true)
+    }
   }
 
   // Get status styling
@@ -100,204 +112,209 @@ export function JobCard({ job, showFullDetails = false, onJobClick }: JobCardPro
     )
   }
 
-  // Get AI rating styling
-  const getRatingBadge = (rating?: string) => {
-    if (!rating) return null
-    
-    const ratingConfig = {
-      APPROVE: { color: 'bg-green-100 text-green-800', label: 'Approved' },
-      MAYBE: { color: 'bg-yellow-100 text-yellow-800', label: 'Maybe' },
-      REJECT: { color: 'bg-red-100 text-red-800', label: 'Rejected' }
-    }
-    
-    const config = ratingConfig[rating as keyof typeof ratingConfig]
-    if (!config) return null
-    
-    return (
-      <Badge className={config.color}>
-        AI: {config.label}
-      </Badge>
-    )
+  const getRatingStars = (rating: number) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star 
+        key={i} 
+        className={`w-3 h-3 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} 
+      />
+    ))
+  }
+
+  const formatSalary = (salaryRange: string) => {
+    if (!salaryRange) return null
+    return salaryRange
   }
 
   return (
-    <Card className="w-full hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle 
-              className="text-lg font-semibold cursor-pointer hover:text-blue-600 transition-colors"
-              onClick={() => onJobClick?.(job)}
-            >
-              {job.title}
-            </CardTitle>
-            <CardDescription className="flex items-center gap-4 mt-1">
-              <span className="flex items-center gap-1">
+    <>
+      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-lg font-semibold line-clamp-2">
+                {job.title}
+              </CardTitle>
+              <CardDescription className="flex items-center gap-2 mt-1">
                 <Building className="w-4 h-4" />
-                {job.company}
-              </span>
-              {job.location && (
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {job.location}
-                </span>
-              )}
-              {job.published_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-4 h-4" />
-                  {format(new Date(job.published_date), 'MMM d, yyyy')}
-                </span>
-              )}
-            </CardDescription>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {getStatusBadge(job.status)}
-            {getRatingBadge(job.rating)}
-            
-            <DropdownMenu open={showActions} onOpenChange={setShowActions}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {job.job_url && (
-                  <DropdownMenuItem onClick={() => window.open(job.job_url, '_blank')}>
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View Job Listing
-                  </DropdownMenuItem>
+                <span className="font-medium">{job.company}</span>
+                {job.location && (
+                  <>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {job.location}
+                    </span>
+                  </>
                 )}
-                {job.status === 'approved' && (
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2 ml-4">
+              {getStatusBadge(job.status)}
+              <DropdownMenu open={showActions} onOpenChange={setShowActions}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleViewDetails}>
+                    <Eye className="mr-2 h-4 w-4" />
+                    View Details
+                  </DropdownMenuItem>
+                  {job.job_url && (
+                    <DropdownMenuItem onClick={() => window.open(job.job_url, '_blank')}>
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View Original
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleMarkAsApplied}>
                     <CheckCircle className="mr-2 h-4 w-4" />
                     Mark as Applied
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={handleMarkAsRejected}>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Not Interested
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem onClick={handleMarkAsRejected}>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Not Interested
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </div>
+        </CardHeader>
 
-        {job.salary_range && (
-          <div className="text-sm font-medium text-green-600">
-            {job.salary_range}
-          </div>
-        )}
-      </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {/* Job metadata */}
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              {job.date_posted && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {format(new Date(job.date_posted), 'MMM dd')}
+                </span>
+              )}
+              {formatSalary(job.salary_range) && (
+                <span className="flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" />
+                  {formatSalary(job.salary_range)}
+                </span>
+              )}
+              {job.source && (
+                <span className="flex items-center gap-1">
+                  <Badge variant="outline" className="text-xs">
+                    {job.source}
+                  </Badge>
+                </span>
+              )}
+            </div>
 
-      <CardContent>
-        {/* AI Analysis Summary */}
-        {job.reasoning && (
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-1">AI Analysis</h4>
-            <p className="text-sm text-blue-800">{job.reasoning}</p>
-            {job.top_matches && job.top_matches.length > 0 && (
-              <div className="mt-2">
-                <span className="text-xs font-medium text-blue-700">Key Matches:</span>
-                <ul className="text-xs text-blue-700 list-disc list-inside">
-                  {job.top_matches.map((match, index) => (
-                    <li key={index}>{match}</li>
-                  ))}
-                </ul>
+            {/* AI Rating */}
+            {job.ai_rating !== null && job.ai_rating !== undefined && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">AI Rating:</span>
+                <div className="flex items-center gap-1">
+                  {getRatingStars(job.ai_rating)}
+                  <span className="text-sm ml-1">{job.ai_rating}/5</span>
+                </div>
               </div>
             )}
+
+            {/* Job description preview */}
+            <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {job.description || 'No description available'}
+                </p>
+                <div className="flex items-center justify-between">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleViewDetails}
+                    className="text-xs"
+                  >
+                    <Eye className="w-3 h-3 mr-1" />
+                    View Full Details
+                  </Button>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" className="text-xs">
+                      {isExpanded ? (
+                        <>
+                          <ChevronUp className="w-3 h-3 mr-1" />
+                          Show Less
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3 h-3 mr-1" />
+                          Show More
+                        </>
+                      )}
+                    </Button>
+                  </CollapsibleTrigger>
+                </div>
+              </div>
+              
+              <CollapsibleContent className="space-y-3">
+                {job.description && (
+                  <div className="text-sm whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">
+                    {job.description.length > 500 
+                      ? `${job.description.substring(0, 500)}...` 
+                      : job.description
+                    }
+                  </div>
+                )}
+                
+                {job.ai_notes && (
+                  <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Star className="w-4 h-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-900">AI Analysis</span>
+                    </div>
+                    <p className="text-sm text-blue-800">{job.ai_notes}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    onClick={handleMarkAsApplied}
+                    disabled={markAsApplied.isPending}
+                    className="flex-1"
+                  >
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Apply
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleMarkAsRejected}
+                    disabled={markAsRejected.isPending}
+                    className="flex-1"
+                  >
+                    <XCircle className="w-3 h-3 mr-1" />
+                    Pass
+                  </Button>
+                  {job.job_url && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.open(job.job_url, '_blank')}
+                    >
+                      <ExternalLink className="w-3 h-3 mr-1" />
+                      View
+                    </Button>
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
-        )}
+        </CardContent>
+      </Card>
 
-        {/* Job Description Preview */}
-        <div className="mb-4">
-          <p className="text-sm text-gray-600 line-clamp-3">
-            {job.description}
-          </p>
-        </div>
-
-        {/* Detailed Analysis (Collapsible) */}
-        {job.detailed_analysis && (
-          <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="w-full justify-between">
-                <span>Detailed AI Analysis</span>
-                {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-3 mt-3">
-              {job.detailed_analysis.why_worth_reviewing && (
-                <div>
-                  <h5 className="font-medium text-sm text-gray-900">Why Worth Reviewing</h5>
-                  <p className="text-sm text-gray-600 mt-1">{job.detailed_analysis.why_worth_reviewing}</p>
-                </div>
-              )}
-              
-              {job.detailed_analysis.technical_challenges && (
-                <div>
-                  <h5 className="font-medium text-sm text-gray-900">Technical Challenges</h5>
-                  <p className="text-sm text-gray-600 mt-1">{job.detailed_analysis.technical_challenges}</p>
-                </div>
-              )}
-              
-              {job.detailed_analysis.career_growth && (
-                <div>
-                  <h5 className="font-medium text-sm text-gray-900">Career Growth</h5>
-                  <p className="text-sm text-gray-600 mt-1">{job.detailed_analysis.career_growth}</p>
-                </div>
-              )}
-              
-              {job.detailed_analysis.company_assessment && (
-                <div>
-                  <h5 className="font-medium text-sm text-gray-900">Company Assessment</h5>
-                  <p className="text-sm text-gray-600 mt-1">{job.detailed_analysis.company_assessment}</p>
-                </div>
-              )}
-              
-              {job.detailed_analysis.potential_concerns && (
-                <div>
-                  <h5 className="font-medium text-sm text-orange-700">Potential Concerns</h5>
-                  <p className="text-sm text-orange-600 mt-1">{job.detailed_analysis.potential_concerns}</p>
-                </div>
-              )}
-              
-              {job.detailed_analysis.application_recommendations && (
-                <div>
-                  <h5 className="font-medium text-sm text-gray-900">Application Strategy</h5>
-                  <p className="text-sm text-gray-600 mt-1">{job.detailed_analysis.application_recommendations}</p>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-2 mt-4 pt-3 border-t">
-          {job.job_url && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => window.open(job.job_url, '_blank')}
-              className="flex items-center gap-2"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View Listing
-            </Button>
-          )}
-          
-          {job.status === 'approved' && (
-            <Button 
-              size="sm" 
-              onClick={handleMarkAsApplied}
-              disabled={markAsApplied.isPending}
-              className="flex items-center gap-2"
-            >
-              <CheckCircle className="w-4 h-4" />
-              {markAsApplied.isPending ? 'Applying...' : 'Mark Applied'}
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+      {/* Job Detail Modal */}
+      <JobDetailView 
+        job={job}
+        isOpen={showDetailView}
+        onClose={() => setShowDetailView(false)}
+      />
+    </>
   )
 } 

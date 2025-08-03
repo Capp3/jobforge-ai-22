@@ -71,7 +71,7 @@ export function PreferencesForm({ onSave, showActions = true }: PreferencesFormP
   const [currentPreferences, setCurrentPreferences] = useState<UserPreferences | null>(null)
   
   // LLM Configuration state
-  const [ollamaEndpoint, setOllamaEndpoint] = useState('http://localhost:11434')
+  const [ollamaEndpoint, setOllamaEndpoint] = useState('http://192.168.1.17:11434')
   const [ollamaModel, setOllamaModel] = useState('')
   const [advancedAiModel, setAdvancedAiModel] = useState('gpt-4')
   const [availableModels, setAvailableModels] = useState<string[]>([])

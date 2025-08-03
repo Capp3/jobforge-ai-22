@@ -1,5 +1,5 @@
 site_name: JobForge AI Documentation
-site_description: Documentation for JobForge AI - A local-first job application tracking system with SQLite
+site_description: Documentation for JobForge AI - A local-first job hunting automation platform with AI-powered filtering
 site_author: JobForge AI Team
 site_url: https://capp3.github.io/jobforge-ai-22/
 
@@ -63,7 +63,7 @@ nav:
     - Project Brief: projectbrief.md
     - CI/CD Pipeline: ci-cd-guide.md
   - Documentation:
-    - Documentation Cleanup Plan: documentation-cleanup-plan.md
+    - Documentation Cleanup Summary: documentation-cleanup-summary.md
     - GitHub Pages Setup: github-pages-setup.md
 
 # Plugins

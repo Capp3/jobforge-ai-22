@@ -10,12 +10,13 @@
 
 ## 🌟 Features
 
-- **📊 Job Application Tracking** - Comprehensive management of job applications with status tracking
-- **🔍 Smart AI Filtering** - Intelligent job matching based on your personalized criteria
-- **⚙️ Preference Management** - Detailed configuration of location, salary, tech stack, and work preferences
+- **📊 Job Application Tracking** - Complete lifecycle management with status tracking and workflow automation
+- **🤖 AI-Powered Analysis** - Two-tier LLM integration (Ollama + Cloud) for intelligent job filtering and detailed analysis
+- **📱 Interactive Dashboard** - Tabbed interface with Overview, Job Listings, Pipeline Kanban, and Analytics
+- **⚙️ Smart Workflow Management** - Automated application events, follow-up tracking, and interview scheduling
 - **💾 Local Data Storage** - SQLite-based storage ensuring complete data privacy and ownership
 - **🖥️ Single-User Design** - Streamlined interface optimized for personal job hunting workflows
-- **🚀 Modern Tech Stack** - Built with React 18, TypeScript, and Express.js for reliability and performance
+- **🚀 Modern Tech Stack** - Built with React 18, TypeScript, Express.js, and shadcn/ui for reliability and performance
 
 ## 🛠️ Technology Stack
 
@@ -23,8 +24,9 @@
 |-------|------------|
 | **Frontend** | React 18, TypeScript, Vite, Tailwind CSS |
 | **Backend** | Express.js, SQLite, better-sqlite3 |
-| **UI Framework** | shadcn/ui, Radix UI |
+| **UI Framework** | shadcn/ui, Radix UI, @dnd-kit |
 | **Database** | SQLite (local file-based) |
+| **AI Integration** | Ollama, OpenAI, Anthropic, Gemini, Grok |
 | **Build Tools** | Vite, TypeScript, ESLint |
 
 ## 🚀 Quick Start
@@ -130,6 +132,10 @@ API_BASE_URL=http://localhost:3001
 | `PUT` | `/api/jobs/:id` | Update existing job |
 | `DELETE` | `/api/jobs/:id` | Remove job entry |
 | `GET` | `/api/jobs/stats/status-counts` | Get application status statistics |
+| `GET` | `/api/dashboard` | Get dashboard overview data |
+| `GET` | `/api/events` | Get application events |
+| `GET` | `/api/follow-ups` | Get pending follow-up actions |
+| `GET` | `/api/interviews` | Get scheduled interviews |
 
 ### Preferences Endpoints
 
@@ -139,6 +145,15 @@ API_BASE_URL=http://localhost:3001
 | `POST` | `/api/preferences` | Create new preferences |
 | `PUT` | `/api/preferences/:id` | Update preferences |
 | `POST` | `/api/preferences/defaults` | Initialize default preferences |
+
+### LLM Integration Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/llm-config` | Get saved LLM configuration |
+| `POST` | `/api/llm-config` | Save LLM configuration |
+| `GET` | `/api/ollama/models` | Get available Ollama models |
+| `POST` | `/api/ollama/test` | Test Ollama connection |
 
 ## 🏗️ Development
 
@@ -181,10 +196,13 @@ npm run start:prod
 
 The application uses SQLite with the following core tables:
 
-- **`jobs`** - Job listings and application tracking
+- **`jobs`** - Job listings and application tracking with AI analysis results
 - **`preferences`** - User configuration and search criteria
+- **`llm_configurations`** - LLM provider settings and API configurations
+- **`application_events`** - Application lifecycle events and milestones
+- **`follow_up_actions`** - Scheduled follow-up tasks and reminders
+- **`interviews`** - Interview scheduling and preparation tracking
 - **`rss_feeds`** - RSS feed sources for job discovery *(planned)*
-- **`processing_stats`** - AI processing metrics *(planned)*
 
 ## 🐛 Troubleshooting
 

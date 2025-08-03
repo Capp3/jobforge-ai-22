@@ -6,7 +6,7 @@
 
 **Scope**: End-to-end job application management with AI-powered analysis and tracking.
 
-**Technology Stack**: Express.js, React, SQLite, Ollama (local LLM), Premium LLMs (OpenAI/OpenRouter/Gemini), RSS feeds
+**Technology Stack**: Express.js, React, SQLite, Ollama (local LLM), Premium LLMs (OpenAI/Anthropic/Gemini/Grok), Dashboard UI
 
 ---
 
@@ -56,7 +56,7 @@ User Input/RSS Feeds → SQLite Storage → AI Analysis (Two-tier) → Dashboard
    - Primary: Use RSS GUID when available
    - Fallback: Generate hash from title + company + date
 4. **Duplicate Detection**
-   - Query Google Sheets by uniqueID
+   - Query SQLite database by uniqueID
    - Skip previously processed listings
 
 ### Phase 2: AI-Powered Filtering
@@ -76,8 +76,8 @@ User Input/RSS Feeds → SQLite Storage → AI Analysis (Two-tier) → Dashboard
    - Include AI analysis summaries
    - Provide direct links to job listings
 8. **Status Tracking**
-   - Update Google Sheets with processing status
-   - Log completion and statistics
+   - Update SQLite database with processing status
+   - Log completion and statistics in application events
 
 ---
 

@@ -30,11 +30,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { 
-  Settings, 
-  User, 
-  Mail, 
-  Bot, 
+import {
+  Settings,
+  User,
+  Mail,
+  Bot,
   MapPin,
   Briefcase,
   DollarSign,
@@ -47,12 +47,18 @@ import {
   Trash2,
   Clock,
   CheckCircle,
-  MessageSquare
+  MessageSquare,
+  Rss,
+  RefreshCw,
+  Globe,
+  AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LLMConfigurationSection } from "@/components/LLMConfigurationSection";
+import { RSSFeedsManagement } from "@/components/RSSFeedsManagement";
 import { PreferencesService } from '@/services/preferencesService';
 import { SettingsService, type SMTPConfig, type NotificationPreferences, type AIPrompts } from '@/services/settingsService';
+import { RSSService, type RSSFeed } from '@/services/rssService';
 import type { UserPreferences, PreferencesCreate } from '@/types/algorithm';
 import type { LLMConfiguration } from '@/services/llmIntegrationService';
 
@@ -111,9 +117,11 @@ export function IntegratedConfiguration() {
   const [currentSMTP, setCurrentSMTP] = useState<SMTPConfig | null>(null);
   const [currentNotifications, setCurrentNotifications] = useState<NotificationPreferences | null>(null);
   const [currentPrompts, setCurrentPrompts] = useState<PromptsData | null>(null);
+  const [rssFeeds, setRssFeeds] = useState<RSSFeed[]>([]);
+  const [processingFeeds, setProcessingFeeds] = useState(false);
   const [llmConfig, setLlmConfig] = useState<LLMConfiguration>({
-    llm1: { 
-      provider: "ollama", 
+    llm1: {
+      provider: "ollama",
       name: "Primary LLM",
       enabled: true,
       configs: {
@@ -124,8 +132,8 @@ export function IntegratedConfiguration() {
         grok: { apiKey: "", model: "grok-beta" }
       }
     },
-    llm2: { 
-      provider: "openai", 
+    llm2: {
+      provider: "openai",
       name: "Secondary LLM",
       enabled: false,
       configs: {
@@ -308,6 +316,14 @@ Analyze:
           console.log('No AI prompts found, using defaults');
         }
 
+        // Load RSS feeds
+        try {
+          const feeds = await RSSService.getAllFeeds();
+          setRssFeeds(feeds);
+        } catch (error) {
+          console.log('No RSS feeds found, using empty list');
+        }
+
       } catch (error) {
         console.error('Failed to load configuration data:', error);
         toast({
@@ -328,7 +344,7 @@ Analyze:
     setIsSaving(true);
     try {
       let savedPreferences: UserPreferences;
-      
+
       if (currentPreferences) {
         savedPreferences = await PreferencesService.updateUserPreferences(
           currentPreferences.id,
@@ -365,7 +381,7 @@ Analyze:
       };
 
       let savedPreferences: UserPreferences;
-      
+
       if (currentPreferences) {
         savedPreferences = await PreferencesService.updateUserPreferences(
           currentPreferences.id,
@@ -498,6 +514,106 @@ Analyze:
     }
   };
 
+  // RSS Feed Management
+  const addRSSFeed = async (name: string, url: string, category?: string) => {
+    try {
+      const newFeed = await RSSService.createFeed({
+        name,
+        url,
+        enabled: true,
+        category
+      });
+      setRssFeeds(prev => [...prev, newFeed]);
+      toast({
+        title: 'Success',
+        description: 'RSS feed added successfully',
+      });
+    } catch (error) {
+      console.error('Failed to add RSS feed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add RSS feed',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const updateRSSFeed = async (id: string, updates: Partial<RSSFeed>) => {
+    try {
+      const updatedFeed = await RSSService.updateFeed(id, updates);
+      setRssFeeds(prev => prev.map(feed => feed.id === id ? updatedFeed : feed));
+      toast({
+        title: 'Success',
+        description: 'RSS feed updated successfully',
+      });
+    } catch (error) {
+      console.error('Failed to update RSS feed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update RSS feed',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const deleteRSSFeed = async (id: string) => {
+    try {
+      await RSSService.deleteFeed(id);
+      setRssFeeds(prev => prev.filter(feed => feed.id !== id));
+      toast({
+        title: 'Success',
+        description: 'RSS feed deleted successfully',
+      });
+    } catch (error) {
+      console.error('Failed to delete RSS feed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete RSS feed',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const processAllFeeds = async () => {
+    setProcessingFeeds(true);
+    try {
+      const result = await RSSService.processAllFeeds();
+      toast({
+        title: 'Success',
+        description: `Processed ${result.totalFeeds} feeds, found ${result.totalJobs} new jobs`,
+      });
+      if (result.errors.length > 0) {
+        console.warn('Feed processing errors:', result.errors);
+      }
+    } catch (error) {
+      console.error('Failed to process RSS feeds:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to process RSS feeds',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingFeeds(false);
+    }
+  };
+
+  const processSingleFeed = async (feedId: string) => {
+    try {
+      const result = await RSSService.processFeed(feedId);
+      toast({
+        title: 'Success',
+        description: `Found ${result.jobsFound} new jobs`,
+      });
+    } catch (error) {
+      console.error('Failed to process RSS feed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to process RSS feed',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -517,7 +633,7 @@ Analyze:
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="job-preferences" className="flex items-center gap-2">
             <Briefcase className="w-4 h-4" />
             Job Preferences
@@ -529,6 +645,10 @@ Analyze:
           <TabsTrigger value="ai-prompts" className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4" />
             AI Prompts
+          </TabsTrigger>
+          <TabsTrigger value="rss-feeds" className="flex items-center gap-2">
+            <Rss className="w-4 h-4" />
+            RSS Feeds
           </TabsTrigger>
           <TabsTrigger value="notifications" className="flex items-center gap-2">
             <Mail className="w-4 h-4" />
@@ -619,7 +739,7 @@ Analyze:
                             <div key={field.id} className="flex items-center space-x-2">
                               <Select
                                 value={jobPreferencesForm.watch(`work_mode.${index}`)}
-                                onValueChange={(value) => 
+                                onValueChange={(value) =>
                                   jobPreferencesForm.setValue(`work_mode.${index}`, value)
                                 }
                               >
@@ -879,9 +999,9 @@ Analyze:
                   />
 
                   <div className="flex justify-end">
-                    <Button 
-                      type="button" 
-                      onClick={promptsForm.handleSubmit(savePrompts)} 
+                    <Button
+                      type="button"
+                      onClick={promptsForm.handleSubmit(savePrompts)}
                       disabled={isSaving}
                     >
                       {isSaving ? (
@@ -896,6 +1016,19 @@ Analyze:
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* RSS Feeds Tab */}
+        <TabsContent value="rss-feeds">
+          <RSSFeedsManagement
+            feeds={rssFeeds}
+            onAddFeed={addRSSFeed}
+            onUpdateFeed={updateRSSFeed}
+            onDeleteFeed={deleteRSSFeed}
+            onProcessAllFeeds={processAllFeeds}
+            onProcessFeed={processSingleFeed}
+            isProcessing={processingFeeds}
+          />
         </TabsContent>
 
         {/* Notifications Tab */}
@@ -1021,10 +1154,10 @@ Analyze:
                                         return checked
                                           ? field.onChange([...field.value, item.value])
                                           : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== item.value
-                                              )
+                                            field.value?.filter(
+                                              (value) => value !== item.value
                                             )
+                                          )
                                       }}
                                     />
                                   </FormControl>
@@ -1070,9 +1203,9 @@ Analyze:
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <LLMConfigurationSection 
-                config={llmConfig} 
-                onChange={setLlmConfig} 
+              <LLMConfigurationSection
+                config={llmConfig}
+                onChange={setLlmConfig}
               />
             </CardContent>
           </Card>
@@ -1115,8 +1248,8 @@ Analyze:
                         <FormItem>
                           <FormLabel>Port</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="number" 
+                            <Input
+                              type="number"
                               placeholder="587"
                               {...field}
                               onChange={(e) => field.onChange(parseInt(e.target.value) || 587)}
@@ -1173,10 +1306,10 @@ Analyze:
                         <FormItem>
                           <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Input 
-                              type="password" 
+                            <Input
+                              type="password"
                               placeholder="App password or email password"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1203,9 +1336,9 @@ Analyze:
                   />
 
                   <div className="flex justify-end space-x-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
+                    <Button
+                      type="button"
+                      variant="outline"
                       onClick={testSMTP}
                       disabled={testingSMTP}
                     >
@@ -1216,7 +1349,7 @@ Analyze:
                       )}
                       Test Connection
                     </Button>
-                    
+
                     <Button type="submit" disabled={isSaving}>
                       {isSaving ? (
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />

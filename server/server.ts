@@ -7,6 +7,8 @@ import preferencesRouter from './routes/preferences.js';
 import applicationFlowRouter from './routes/applicationFlow.js';
 import llmIntegrationRouter from './routes/llmIntegration.js';
 import settingsRouter from './routes/settings.js';
+import rssRouter from './routes/rssFeeds.js';
+import rssProcessorRouter from './routes/rssProcessor.js';
 
 
 const app = express();
@@ -25,6 +27,8 @@ app.use('/api/preferences', preferencesRouter);
 app.use('/api', applicationFlowRouter);
 app.use('/api', llmIntegrationRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/rss', rssRouter);
+app.use('/api/rss-processor', rssProcessorRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

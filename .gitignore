@@ -70,5 +70,5 @@ wheels/
 *.egg
 MANIFEST
 
-# Legacy files (can be removed)
-docs/supabaseinfo.md
+.cursor/
+optimization-journey/

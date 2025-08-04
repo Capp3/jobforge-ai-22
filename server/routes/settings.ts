@@ -96,7 +96,7 @@ router.get('/smtp', (req, res) => {
   try {
     const stmt = db.prepare('SELECT * FROM smtp_config ORDER BY created_at DESC LIMIT 1');
     const config = stmt.get() as SMTPConfig | undefined;
-    
+
     if (!config) {
       return res.json({
         host: '',
@@ -137,7 +137,7 @@ router.post('/smtp', (req, res) => {
     }
 
     const now = new Date().toISOString();
-    
+
     // Check if config exists
     const existingStmt = db.prepare('SELECT id FROM smtp_config ORDER BY created_at DESC LIMIT 1');
     const existing = existingStmt.get() as { id: string } | undefined;
@@ -150,7 +150,7 @@ router.post('/smtp', (req, res) => {
         WHERE id = ?
       `);
       updateStmt.run(host, port, secure ? 1 : 0, username, password, from, now, existing.id);
-      
+
       res.json({ message: 'SMTP configuration updated successfully' });
     } else {
       // Create new
@@ -160,7 +160,7 @@ router.post('/smtp', (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
       insertStmt.run(id, host, port, secure ? 1 : 0, username, password, from, now, now);
-      
+
       res.json({ message: 'SMTP configuration created successfully' });
     }
   } catch (error) {
@@ -173,11 +173,11 @@ router.post('/smtp', (req, res) => {
 router.post('/smtp/test', async (req, res) => {
   try {
     const { host, port, secure, username, password } = req.body;
-    
+
     // Import nodemailer dynamically
     const nodemailer = await import('nodemailer');
-    
-    const transporter = nodemailer.default.createTransporter({
+
+    const transporter = nodemailer.createTransport({
       host,
       port,
       secure,
@@ -189,14 +189,14 @@ router.post('/smtp/test', async (req, res) => {
 
     // Verify connection
     await transporter.verify();
-    
+
     res.json({ success: true, message: 'SMTP connection successful' });
   } catch (error) {
     console.error('SMTP test failed:', error);
-    res.status(400).json({ 
-      success: false, 
+    res.status(400).json({
+      success: false,
       message: 'SMTP connection failed',
-      error: error.message 
+      error: error.message
     });
   }
 });
@@ -208,7 +208,7 @@ router.get('/notifications', (req, res) => {
   try {
     const stmt = db.prepare('SELECT * FROM notification_preferences ORDER BY created_at DESC LIMIT 1');
     const preferences = stmt.get() as NotificationPreferences | undefined;
-    
+
     if (!preferences) {
       return res.json({
         email_enabled: true,
@@ -237,9 +237,9 @@ router.get('/notifications', (req, res) => {
 // Create or update notification preferences
 router.post('/notifications', (req, res) => {
   try {
-    const { 
-      email_enabled = true, 
-      email_frequency = 'daily', 
+    const {
+      email_enabled = true,
+      email_frequency = 'daily',
       email_types = ['new_jobs', 'status_changes', 'weekly_digest'],
       digest_time = '09:00'
     } = req.body;
@@ -255,7 +255,7 @@ router.post('/notifications', (req, res) => {
     }
 
     const now = new Date().toISOString();
-    
+
     // Check if preferences exist
     const existingStmt = db.prepare('SELECT id FROM notification_preferences ORDER BY created_at DESC LIMIT 1');
     const existing = existingStmt.get() as { id: string } | undefined;
@@ -268,14 +268,14 @@ router.post('/notifications', (req, res) => {
         WHERE id = ?
       `);
       updateStmt.run(
-        email_enabled ? 1 : 0, 
-        email_frequency, 
-        JSON.stringify(email_types), 
-        digest_time, 
-        now, 
+        email_enabled ? 1 : 0,
+        email_frequency,
+        JSON.stringify(email_types),
+        digest_time,
+        now,
         existing.id
       );
-      
+
       res.json({ message: 'Notification preferences updated successfully' });
     } else {
       // Create new
@@ -285,15 +285,15 @@ router.post('/notifications', (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `);
       insertStmt.run(
-        id, 
-        email_enabled ? 1 : 0, 
-        email_frequency, 
-        JSON.stringify(email_types), 
-        digest_time, 
-        now, 
+        id,
+        email_enabled ? 1 : 0,
+        email_frequency,
+        JSON.stringify(email_types),
+        digest_time,
+        now,
         now
       );
-      
+
       res.json({ message: 'Notification preferences created successfully' });
     }
   } catch (error) {
@@ -309,7 +309,7 @@ router.get('/prompts', (req, res) => {
   try {
     const stmt = db.prepare('SELECT * FROM ai_prompts ORDER BY created_at DESC LIMIT 1');
     const prompts = stmt.get() as AIPrompts | undefined;
-    
+
     if (!prompts) {
       return res.json({
         prompt1: `You are a job filtering assistant. Review this job listing against the candidate's profile.
@@ -363,7 +363,7 @@ router.post('/prompts', (req, res) => {
     }
 
     const now = new Date().toISOString();
-    
+
     // Check if prompts exist
     const existingStmt = db.prepare('SELECT id FROM ai_prompts ORDER BY created_at DESC LIMIT 1');
     const existing = existingStmt.get() as { id: string } | undefined;
@@ -376,7 +376,7 @@ router.post('/prompts', (req, res) => {
         WHERE id = ?
       `);
       updateStmt.run(prompt1, prompt2, now, existing.id);
-      
+
       res.json({ message: 'AI prompts updated successfully' });
     } else {
       // Create new
@@ -386,7 +386,7 @@ router.post('/prompts', (req, res) => {
         VALUES (?, ?, ?, ?, ?)
       `);
       insertStmt.run(id, prompt1, prompt2, now, now);
-      
+
       res.json({ message: 'AI prompts created successfully' });
     }
   } catch (error) {

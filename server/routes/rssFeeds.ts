@@ -22,21 +22,47 @@ interface RSSFeed {
 // Initialize RSS feeds table
 const initializeRSSTable = () => {
     try {
-        db.prepare(`
-      CREATE TABLE IF NOT EXISTS rss_feeds (
-        id TEXT PRIMARY KEY,
-        name TEXT NOT NULL,
-        url TEXT NOT NULL UNIQUE,
-        enabled INTEGER DEFAULT 1,
-        category TEXT,
-        last_fetched TEXT,
-        last_fetch_status TEXT,
-        last_error TEXT,
-        job_count INTEGER DEFAULT 0,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )
-    `).run();
+        // Check if table exists and get current structure
+        const tableInfo = db.prepare("PRAGMA table_info(rss_feeds)").all();
+        const columnNames = tableInfo.map((col: unknown) =>
+            typeof col === 'object' && col !== null && 'name' in col ? (col as { name: string }).name : ''
+        );
+
+        if (tableInfo.length === 0) {
+            // Create new table with all columns
+            db.prepare(`
+        CREATE TABLE rss_feeds (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          url TEXT NOT NULL UNIQUE,
+          enabled INTEGER DEFAULT 1,
+          category TEXT,
+          last_fetched TEXT,
+          last_fetch_status TEXT,
+          last_error TEXT,
+          job_count INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      `).run();
+        } else {
+            // Add missing columns if they don't exist
+            const requiredColumns = [
+                { name: 'enabled', definition: 'INTEGER DEFAULT 1' },
+                { name: 'category', definition: 'TEXT' },
+                { name: 'last_fetched', definition: 'TEXT' },
+                { name: 'last_fetch_status', definition: 'TEXT' },
+                { name: 'last_error', definition: 'TEXT' },
+                { name: 'job_count', definition: 'INTEGER DEFAULT 0' }
+            ];
+
+            for (const column of requiredColumns) {
+                if (!columnNames.includes(column.name)) {
+                    console.log(`Adding missing column: ${column.name}`);
+                    db.prepare(`ALTER TABLE rss_feeds ADD COLUMN ${column.name} ${column.definition}`).run();
+                }
+            }
+        }
 
         console.log('RSS feeds table initialized successfully');
     } catch (error) {

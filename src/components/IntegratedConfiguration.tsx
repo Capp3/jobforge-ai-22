@@ -321,7 +321,7 @@ Analyze:
     };
 
     loadAllData();
-  }, []);
+  }, [jobPreferencesForm, profileForm, promptsForm, smtpForm, notificationForm, toast]);
 
   // Save job preferences
   const saveJobPreferences = async (data: JobPreferencesData) => {
@@ -332,7 +332,7 @@ Analyze:
       if (currentPreferences) {
         savedPreferences = await PreferencesService.updateUserPreferences(
           currentPreferences.id,
-          data as any
+          data as Partial<UserPreferences>
         );
       } else {
         savedPreferences = await PreferencesService.createUserPreferences(data as PreferencesCreate);
@@ -369,7 +369,7 @@ Analyze:
       if (currentPreferences) {
         savedPreferences = await PreferencesService.updateUserPreferences(
           currentPreferences.id,
-          profileData as any
+          profileData as Partial<UserPreferences>
         );
       } else {
         // If no preferences exist, create with minimal required data

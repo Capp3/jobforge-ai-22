@@ -6,6 +6,8 @@ import jobsRouter from './routes/jobs.js';
 import preferencesRouter from './routes/preferences.js';
 import applicationFlowRouter from './routes/applicationFlow.js';
 import llmIntegrationRouter from './routes/llmIntegration.js';
+import settingsRouter from './routes/settings.js';
+
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,6 +24,7 @@ app.use('/api/jobs', jobsRouter);
 app.use('/api/preferences', preferencesRouter);
 app.use('/api', applicationFlowRouter);
 app.use('/api', llmIntegrationRouter);
+app.use('/api/settings', settingsRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

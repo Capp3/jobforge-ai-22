@@ -23,15 +23,8 @@ const navigation = [
   { name: "Activity Logs", href: "/logs", icon: Activity },
 ];
 
-const configTabs = [
-  { name: "Basics", href: "/configuration/basics", icon: Settings },
-  { name: "RSS Feeds", href: "/configuration/feeds", icon: Rss },
-  { name: "AI Agents", href: "/configuration/ai", icon: Bot },
-  { name: "CV", href: "/configuration/cv", icon: FileText },
-  { name: "Biography", href: "/configuration/bio", icon: User },
-  { name: "Prompt 1", href: "/configuration/prompt1", icon: MessageSquare },
-  { name: "Prompt 2", href: "/configuration/prompt2", icon: MessageSquare },
-];
+// Configuration is now handled by IntegratedConfiguration component with internal tabs
+// No need for sidebar sub-navigation
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
@@ -95,32 +88,7 @@ export function Sidebar() {
           );
         })}
 
-        {/* Configuration Subsection */}
-        {!collapsed && isConfigSection && (
-          <div className="pt-4 mt-4 border-t border-border">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-              Configuration
-            </p>
-            {configTabs.map((item) => {
-              const active = currentPath === item.href;
-              return (
-                <NavLink
-                  key={item.name}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center space-x-3 px-3 py-2 rounded-md text-sm transition-all duration-200 ml-2",
-                    active 
-                      ? "bg-accent text-accent-foreground border-l-2 border-primary" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                  )}
-                >
-                  <item.icon className="h-4 w-4 flex-shrink-0" />
-                  <span>{item.name}</span>
-                </NavLink>
-              );
-            })}
-          </div>
-        )}
+
       </nav>
 
       {/* Footer */}
